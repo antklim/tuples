@@ -60,3 +60,8 @@ func (r *Reader) readFields(s string) []string {
 	}
 	return fieldValues
 }
+
+func ReadString(s string) ([][]string, error) {
+	r := NewReader(strings.NewReader(s))
+	return r.ReadAll()
+}

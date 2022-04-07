@@ -53,3 +53,15 @@ func TestRead(t *testing.T) {
 		})
 	}
 }
+
+func TestReadString(t *testing.T) {
+	for _, tC := range readTests {
+		out, err := tuples.ReadString(tC.Input)
+		if err != nil {
+			t.Fatalf("unexpected ReadString() error: %v", err)
+		}
+		if !reflect.DeepEqual(out, tC.Output) {
+			t.Fatalf("ReadString() output:\ngot %v\nwant %v", out, tC.Output)
+		}
+	}
+}
