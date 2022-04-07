@@ -7,7 +7,9 @@ import (
 )
 
 type Reader struct {
-	s *bufio.Scanner
+	FieldsDelimiter rune
+	KeyValDelimiter rune
+	s               *bufio.Scanner
 }
 
 func NewReader(r io.Reader) *Reader {
@@ -15,7 +17,9 @@ func NewReader(r io.Reader) *Reader {
 	s.Split(bufio.ScanWords)
 
 	return &Reader{
-		s: s,
+		FieldsDelimiter: ',',
+		KeyValDelimiter: '=',
+		s:               s,
 	}
 }
 
@@ -38,7 +42,7 @@ func (r *Reader) ReadAll() (tuples [][]string, err error) {
 
 func (r *Reader) readTuple() ([]string, error) {
 	if r.s.Scan() {
-		tuple := readFields(r.s.Text())
+		tuple := r.readFields(r.s.Text())
 		return tuple, nil
 	}
 	if err := r.s.Err(); err != nil {
@@ -47,13 +51,12 @@ func (r *Reader) readTuple() ([]string, error) {
 	return nil, io.EOF
 }
 
-func readFields(s string) []string {
-	fs := strings.Split(s, ",")
-
-	var fields []string
-	for _, v := range fs {
-		kv := strings.Split(v, "=")
-		fields = append(fields, kv[1])
+func (r *Reader) readFields(s string) []string {
+	var fieldValues []string
+	fields := strings.FieldsFunc(s, func(c rune) bool { return c == r.FieldsDelimiter })
+	for _, f := range fields {
+		kv := strings.FieldsFunc(f, func(c rune) bool { return c == r.KeyValDelimiter })
+		fieldValues = append(fieldValues, kv[1])
 	}
-	return fields
+	return fieldValues
 }
