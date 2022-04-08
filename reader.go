@@ -2,9 +2,12 @@ package tuples
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"strings"
 )
+
+var errInvalidDelim = errors.New("tuples: invalid fields or key values delimiter")
 
 type Reader struct {
 	FieldsDelimiter rune
@@ -41,6 +44,10 @@ func (r *Reader) ReadAll() (tuples [][]string, err error) {
 }
 
 func (r *Reader) readTuple() ([]string, error) {
+	if r.FieldsDelimiter == r.KeyValDelimiter {
+		return nil, errInvalidDelim
+	}
+
 	if r.s.Scan() {
 		tuple := r.readFields(r.s.Text())
 		return tuple, nil

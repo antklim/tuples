@@ -48,6 +48,12 @@ var readTests = []readTest{{
 	out:     [][]string{{"John", "Doe", "2000-01-01"}, {"Bob", "Smith", "2010-10-10"}},
 	fDelim:  ';',
 	kvDelim: ':',
+}, {
+	desc:    "BadDelimiters",
+	in:      "fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10",
+	err:     errInvalidDelim,
+	fDelim:  ':',
+	kvDelim: ':',
 }}
 
 func newReader(rt readTest) *tuples.Reader {
@@ -66,20 +72,34 @@ func TestRead(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			r := newReader(tC)
 			out, err := r.ReadAll()
-			if err != nil {
-				t.Fatalf("unexpected ReadAll() error: %v", err)
-			}
-			if !reflect.DeepEqual(out, tC.out) {
-				t.Fatalf("ReadAll() output:\ngot %v\nwant %v", out, tC.out)
+
+			if tC.err != nil {
+				if err == nil || (err.Error() != tC.err.Error()) {
+					t.Fatalf("ReadAll() error mismatch:\ngot %v\nwant %v", err, tC.err)
+				}
+				if out != nil {
+					t.Fatalf("ReadAll() output:\ngot %v\nwant nil", out)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("unexpected ReadAll() error: %v", err)
+				}
+				if !reflect.DeepEqual(out, tC.out) {
+					t.Fatalf("ReadAll() output:\ngot %v\nwant %v", out, tC.out)
+				}
 			}
 
 			r = newReader(tC)
 			for recNum := 0; ; recNum++ {
 				rec, err := r.Read()
+
 				var wantErr error
-				if recNum >= len(tC.out) {
+				if tC.err != nil {
+					wantErr = tC.err
+				} else if recNum >= len(tC.out) {
 					wantErr = io.EOF
 				}
+
 				if err != nil && err.Error() != wantErr.Error() {
 					t.Fatalf("Read() error at record %d:\ngot %v\nwant %v", recNum, err, wantErr)
 				}
@@ -102,11 +122,20 @@ func TestReadString(t *testing.T) {
 			continue
 		}
 		out, err := tuples.ReadString(tC.in)
-		if err != nil {
-			t.Fatalf("unexpected ReadString() error: %v", err)
-		}
-		if !reflect.DeepEqual(out, tC.out) {
-			t.Fatalf("ReadString() output:\ngot %v\nwant %v", out, tC.out)
+		if tC.err != nil {
+			if err == nil || (err.Error() != tC.err.Error()) {
+				t.Fatalf("ReadString() error mismatch:\ngot %v\nwant %v", err, tC.err)
+			}
+			if out != nil {
+				t.Fatalf("ReadString() output:\ngot %v\nwant nil", out)
+			}
+		} else {
+			if err != nil {
+				t.Fatalf("unexpected ReadString() error: %v", err)
+			}
+			if !reflect.DeepEqual(out, tC.out) {
+				t.Fatalf("ReadString() output:\ngot %v\nwant %v", out, tC.out)
+			}
 		}
 	}
 }
