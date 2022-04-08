@@ -5,9 +5,14 @@ import (
 	"errors"
 	"io"
 	"strings"
+	"unicode/utf8"
 )
 
 var errInvalidDelim = errors.New("tuples: invalid fields or key values delimiter")
+
+func validDelim(r rune) bool {
+	return r != 0 && utf8.ValidRune(r) && r != utf8.RuneError
+}
 
 type Reader struct {
 	FieldsDelimiter rune
@@ -44,7 +49,9 @@ func (r *Reader) ReadAll() (tuples [][]string, err error) {
 }
 
 func (r *Reader) readTuple() ([]string, error) {
-	if r.FieldsDelimiter == r.KeyValDelimiter {
+	if r.FieldsDelimiter == r.KeyValDelimiter ||
+		!validDelim(r.FieldsDelimiter) ||
+		!validDelim(r.KeyValDelimiter) {
 		return nil, errInvalidDelim
 	}
 

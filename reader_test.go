@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/antklim/tuples"
 )
@@ -49,11 +50,23 @@ var readTests = []readTest{{
 	fDelim:  ';',
 	kvDelim: ':',
 }, {
-	desc:    "BadDelimiters",
+	desc:    "BadDelimiters1",
 	in:      "fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10",
 	err:     errInvalidDelim,
 	fDelim:  ':',
 	kvDelim: ':',
+}, {
+	desc:    "BadDelimiters2",
+	in:      "fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10",
+	err:     errInvalidDelim,
+	fDelim:  utf8.RuneError,
+	kvDelim: ':',
+}, {
+	desc:    "BadDelimiters3",
+	in:      "fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10",
+	err:     errInvalidDelim,
+	fDelim:  ':',
+	kvDelim: utf8.RuneError,
 }}
 
 func newReader(rt readTest) *tuples.Reader {
