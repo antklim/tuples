@@ -6,6 +6,25 @@ import (
 	"github.com/antklim/tuples"
 )
 
+var invalidUnmarshalTests = []struct {
+	v   any
+	err string
+}{
+	{nil, "tuples: Unmarshal(nil)"},
+	{struct{}{}, "tuples: Unmarshal(non-pointer struct {})"},
+	{(*int)(nil), "tuples: Unmarshal(nil *int)"},
+}
+
+func TestInvalidUnmarshal(t *testing.T) {
+	in := []byte("fname=John")
+	for _, tC := range invalidUnmarshalTests {
+		err := tuples.Unmarshal(in, tC.v)
+		if err == nil || (err.Error() != tC.err) {
+			t.Errorf("Unmarshal() error mismatch:\ngot %v\nwant %s", err, tC.err)
+		}
+	}
+}
+
 func TestUnmarshal(t *testing.T) {
 	t.Skip("not implemented")
 	in := []byte("fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10")
