@@ -58,6 +58,12 @@ var unmarshalTests = []unmarshalTest{
 			{Age: "30", IsAdult: "true"},
 		},
 	},
+	// TODO: add array test
+	// TODO: add unmarshal to map test
+	// TODO: add unmarshal to interface test
+	// TODO: add errors tests
+	// 	- unmarshal to struct
+	// 	- unmarshal to invalid data types
 }
 
 func TestUnmarshal(t *testing.T) {
