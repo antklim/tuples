@@ -185,6 +185,13 @@ func readFields(s string) [][]string {
 	return fieldValues
 }
 
+// indirect walks down v allocating pointers as needed,
+// until it gets to a non-pointer.
+// If it encounters an Unmarshaler, indirect stops and returns that.
+// If decodingNull is true, indirect stops at the first settable pointer so it
+// can be set to nil.
+// original https://cs.opensource.google/go/go/+/refs/tags/go1.18.1:src/encoding/json/decode.go;l=420;drc=refs%2Ftags%2Fgo1.18.1
+// and https://github.com/aws/aws-sdk-go/blob/7a3b8d6ddc7199249e6280d6c1839e08213cc48c/service/dynamodb/dynamodbattribute/decode.go#L634
 func indirect(v reflect.Value) reflect.Value {
 	if v.Kind() != reflect.Pointer && v.Type().Name() != "" && v.CanAddr() {
 		v = v.Addr()
