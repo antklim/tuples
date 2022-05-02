@@ -27,11 +27,9 @@ func TestInvalidUnmarshal(t *testing.T) {
 }
 
 type T struct {
-	Name string `tuples:"name"`
-	// Age     int    `tuples:"age"`
-	// IsAdult bool   `tuples:"adult"`
-	Age     string `tuples:"age"`
-	IsAdult string `tuples:"adult"`
+	Name    string `tuples:"name"`
+	Age     int    `tuples:"age"`
+	IsAdult bool   `tuples:"adult"`
 }
 
 type unmarshalTest struct {
@@ -44,18 +42,18 @@ var unmarshalTests = []unmarshalTest{
 	{in: "", out: []T{}},
 	{
 		in:  "name=John,lname=Doe,age=17",
-		out: []T{{Name: "John", Age: "17"}},
+		out: []T{{Name: "John", Age: 17}},
 	},
 	{
 		in:  "name=John,age=23,adult=true",
-		out: []T{{Name: "John", Age: "23", IsAdult: "true"}},
+		out: []T{{Name: "John", Age: 23, IsAdult: true}},
 	},
 	{
 		in: "name=John,age=23,adult=true name=Bob,adult=true adult=true,age=30",
 		out: []T{
-			{Name: "John", Age: "23", IsAdult: "true"},
-			{Name: "Bob", IsAdult: "true"},
-			{Age: "30", IsAdult: "true"},
+			{Name: "John", Age: 23, IsAdult: true},
+			{Name: "Bob", IsAdult: true},
+			{Age: 30, IsAdult: true},
 		},
 	},
 	// TODO: add array test

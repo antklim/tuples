@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -67,22 +68,23 @@ func (d *decodeState) unmarshal(v any) error {
 }
 
 func (d *decodeState) value(v reflect.Value) error {
-	// if !v.IsValid() {
-	// 	return nil
-	// }
 	v = indirect(v)
 	// TODO: add opcode constants
 	switch d.opcode {
 	case 0:
 		// if it's the beginning of decode then v should be slice, array or interface
 		d.opcode = 1
-		if err := d.array(v); err != nil {
-			return err
+		if v.IsValid() {
+			if err := d.array(v); err != nil {
+				return err
+			}
 		}
 	case 1:
 		// if it's an iteration of the decoding then v should be a struct
-		if err := d.object(v); err != nil {
-			return err
+		if v.IsValid() {
+			if err := d.object(v); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -163,7 +165,9 @@ func (d *decodeState) object(v reflect.Value) error {
 			field := v.Type().Field(i)
 			tag := field.Tag.Get("tuples")
 			if tag == fname {
-				v.Field(i).SetString(fvalue)
+				if err := set(v.Field(i), fvalue); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -206,4 +210,26 @@ func indirect(v reflect.Value) reflect.Value {
 		v = v.Elem()
 	}
 	return v
+}
+
+func set(v reflect.Value, value string) error {
+	switch v.Kind() {
+	case reflect.String:
+		v.SetString(value)
+	case reflect.Int:
+		i, err := strconv.ParseInt(value, 10, 64) // nolint
+		if err != nil {
+			return err
+		}
+		v.SetInt(i)
+	case reflect.Bool:
+		b, err := strconv.ParseBool(value)
+		if err != nil {
+			return err
+		}
+		v.SetBool(b)
+	default:
+		return fmt.Errorf("unsupported kind %s", v.Type()) // TODO: replace with defined error type
+	}
+	return nil
 }
