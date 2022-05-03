@@ -56,6 +56,7 @@ var unmarshalTests = []unmarshalTest{
 			{Age: 30, IsAdult: true},
 		},
 	},
+	// TODO: add float test
 	// TODO: add array test
 	// TODO: add unmarshal to map test
 	// TODO: add unmarshal to interface test

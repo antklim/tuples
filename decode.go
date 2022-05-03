@@ -47,6 +47,17 @@ func (e *UnmarshalTypeError) Error() string {
 		e.Value, e.Type.String())
 }
 
+// UnmarshalUnsupportedTypeError describes an unsupported field type of a
+// value of a specific Go type.
+type UnmarshalUnsupportedTypeError struct {
+	Type reflect.Type
+}
+
+func (e *UnmarshalUnsupportedTypeError) Error() string {
+	return fmt.Sprintf("tuples: unsupported Go value type %s",
+		e.Type.String())
+}
+
 type decodeState struct {
 	data   []byte
 	opcode int
@@ -149,16 +160,9 @@ func (d *decodeState) array(v reflect.Value) error {
 }
 
 func (d *decodeState) object(v reflect.Value) error {
-	// v.Kind struct
-	// get d.s.Text()
-	// get v tags
-	// split d.s.Text into fields
-	// apply fields to value
 	t := d.s.Text()
 	fv := readFields(t)
-	// if v.IsNil() {
-	// v.Set(reflect.New(v.Type()))
-	// }
+
 	for _, fld := range fv {
 		fname, fvalue := fld[0], fld[1]
 		for i := 0; i < v.Type().NumField(); i++ {
@@ -224,7 +228,7 @@ func set(v reflect.Value, value string) error {
 	case reflect.String:
 		v.SetString(value)
 	case reflect.Int:
-		i, err := strconv.ParseInt(value, 10, 64) // nolint
+		i, err := strconv.ParseInt(value, 10, 64) // nolint:gomnd
 		if err != nil {
 			return err
 		}
@@ -236,7 +240,7 @@ func set(v reflect.Value, value string) error {
 		}
 		v.SetBool(b)
 	default:
-		return fmt.Errorf("unsupported kind %s", v.Type()) // TODO: replace with defined error type
+		return &UnmarshalUnsupportedTypeError{v.Type()}
 	}
 	return nil
 }
