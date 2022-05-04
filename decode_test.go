@@ -74,6 +74,15 @@ var unmarshalTests = []unmarshalTest{
 			{Age: 30, IsAdult: true},
 		},
 	},
+	{
+		in:  "n=1,n8=-2,n16=3,n32=-4,n64=5 un=11,un8=12,un16=13,un32=14,un64=15 n=21,un8=22,n16=23,un32=24,n64=25",
+		ptr: new([]TInts),
+		out: []TInts{
+			{N: 1, N8: -2, N16: 3, N32: -4, N64: 5},
+			{UN: 11, UN8: 12, UN16: 13, UN32: 14, UN64: 15},
+			{N: 21, UN8: 22, N16: 23, UN32: 24, N64: 25},
+		},
+	},
 	// TODO: add float test
 	// TODO: add array test
 	// TODO: add unmarshal to map test

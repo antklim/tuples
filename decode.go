@@ -227,12 +227,18 @@ func set(v reflect.Value, value string) error {
 	switch v.Kind() {
 	case reflect.String:
 		v.SetString(value)
-	case reflect.Int:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i, err := strconv.ParseInt(value, 10, 64) // nolint:gomnd
 		if err != nil {
 			return err
 		}
 		v.SetInt(i)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		i, err := strconv.ParseUint(value, 10, 64) // nolint:gomnd
+		if err != nil {
+			return err
+		}
+		v.SetUint(i)
 	case reflect.Bool:
 		b, err := strconv.ParseBool(value)
 		if err != nil {
