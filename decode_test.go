@@ -32,24 +32,42 @@ type T struct {
 	IsAdult bool   `tuples:"adult"`
 }
 
+type TInts struct {
+	N   int   `tuples:"n"`
+	N8  int8  `tuples:"n8"`
+	N16 int16 `tuples:"n16"`
+	N32 int32 `tuples:"n32"`
+	N64 int64 `tuples:"n64"`
+
+	UN   uint   `tuples:"un"`
+	UN8  uint8  `tuples:"un8"`
+	UN16 uint16 `tuples:"un16"`
+	UN32 uint32 `tuples:"un32"`
+	UN64 uint64 `tuples:"un64"`
+}
+
 type unmarshalTest struct {
 	in  string
-	out []T
+	ptr any
+	out any
 	err error
 }
 
 var unmarshalTests = []unmarshalTest{
-	{in: "", out: []T{}},
+	{in: "", ptr: new([]T), out: []T{}},
 	{
 		in:  "name=John,lname=Doe,age=17",
+		ptr: new([]T),
 		out: []T{{Name: "John", Age: 17}},
 	},
 	{
 		in:  "name=John,age=23,adult=true",
+		ptr: new([]T),
 		out: []T{{Name: "John", Age: 23, IsAdult: true}},
 	},
 	{
-		in: "name=John,age=23,adult=true name=Bob,adult=true adult=true,age=30",
+		in:  "name=John,age=23,adult=true name=Bob,adult=true adult=true,age=30",
+		ptr: new([]T),
 		out: []T{
 			{Name: "John", Age: 23, IsAdult: true},
 			{Name: "Bob", IsAdult: true},
@@ -67,14 +85,20 @@ var unmarshalTests = []unmarshalTest{
 }
 
 func TestUnmarshal(t *testing.T) {
-	for _, tC := range unmarshalTests {
+	for i, tC := range unmarshalTests {
 		in := []byte(tC.in)
-		var got []T
-		err := tuples.Unmarshal(in, &got)
+		typ := reflect.TypeOf(tC.ptr)
+		if typ.Kind() != reflect.Pointer {
+			t.Errorf("#%d: unmarshalTest.ptr %T is not a pointer type", i, tC.ptr)
+			continue
+		}
+		typ = typ.Elem()
+		got := reflect.New(typ)
+		err := tuples.Unmarshal(in, got.Interface())
 		if err != nil {
 			t.Fatalf("unexpected Unmarshal() error: %v", err)
 		}
-		if !reflect.DeepEqual(got, tC.out) {
+		if !reflect.DeepEqual(got.Elem().Interface(), tC.out) {
 			t.Fatalf("Unmarshal() output:\ngot %v\nwant %v", got, tC.out)
 		}
 	}
