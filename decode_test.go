@@ -80,6 +80,20 @@ var unmarshalTests = []unmarshalTest{
 			{Age: 30, IsAdult: true},
 		},
 	},
+
+	// add only the first record
+	{
+		in:  "name=John,age=23,adult=true name=Bob,adult=true",
+		ptr: new([1]T),
+		out: [1]T{{Name: "John", Age: 23, IsAdult: true}},
+	},
+
+	// fill the rest of the array with zeros
+	{
+		in:  "name=John,age=23,adult=true",
+		ptr: new([2]T),
+		out: [2]T{{Name: "John", Age: 23, IsAdult: true}, {}},
+	},
 	{
 		in:  "n=1,n8=-2,n16=3,n32=-4,n64=5 un=11,un8=12,un16=13,un32=14,un64=15 n=21,un8=22,n16=23,un32=24,n64=25",
 		ptr: new([]TInts),
@@ -88,6 +102,13 @@ var unmarshalTests = []unmarshalTest{
 			{UN: 11, UN8: 12, UN16: 13, UN32: 14, UN64: 15},
 			{N: 21, UN8: 22, N16: 23, UN32: 24, N64: 25},
 		},
+	},
+
+	// unmarshal to struct
+	{
+		in:  "name=John,lname=Doe,age=17",
+		ptr: new(T),
+		err: &tuples.UnmarshalError{Value: "array", Type: reflect.TypeOf(T{})},
 	},
 
 	// invalid field value errors
@@ -109,22 +130,17 @@ var unmarshalTests = []unmarshalTest{
 		err:        &tuples.UnmarshalError{Value: "a", Type: reflect.TypeOf(uint(1))},
 		withUnwrap: true,
 	},
+
+	// unsupported field type error
 	{
 		in:  "a=a,b",
 		ptr: new([]TUnsupportedFldType),
 		err: &tuples.UnmarshalUnsupportedTypeError{Type: reflect.TypeOf([]string{})},
 	},
 
-	// unsupported field type error
-
 	// TODO: add float test
-	// TODO: add array test
 	// TODO: add unmarshal to map test
 	// TODO: add unmarshal to interface test
-	// TODO: add errors tests
-	// 	- unmarshal to struct
-	// 	- unmarshal to invalid data types - decode string to int for example
-	//	- unmarshal to unsupported data types - decode to slices
 }
 
 func eqErrors(a, b error) bool {
