@@ -131,7 +131,7 @@ func TestUnmarshal(t *testing.T) {
 			continue
 		} else if err != nil {
 			if tC.withUnwrap && errors.Unwrap(err) == nil {
-				t.Errorf("#%d: Unmarshal() error should have wrapped error", i)
+				t.Errorf("#%d: Unmarshal() error should wrap original error", i)
 			}
 			continue
 		}
