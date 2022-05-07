@@ -35,18 +35,6 @@ func (e *InvalidUnmarshalError) Error() string {
 	return fmt.Sprintf("tuples: Unmarshal(nil %s)", e.Type.String())
 }
 
-// UnmarshalTypeError describes a tuples value that was not appropriate for a
-// value of a specific Go type.
-type UnmarshalTypeError struct {
-	Value string
-	Type  reflect.Type
-}
-
-func (e *UnmarshalTypeError) Error() string {
-	return fmt.Sprintf("tuples: cannot unmarshal %s into Go value of type %s",
-		e.Value, e.Type.String())
-}
-
 // UnmarshalUnsupportedTypeError describes an unsupported field type of a
 // value of a specific Go type.
 type UnmarshalUnsupportedTypeError struct {
@@ -56,6 +44,23 @@ type UnmarshalUnsupportedTypeError struct {
 func (e *UnmarshalUnsupportedTypeError) Error() string {
 	return fmt.Sprintf("tuples: unsupported Go value type %s",
 		e.Type.String())
+}
+
+// UnmarshalError describes an error that occurred while unmarshaling a tuple
+// fields values into a Go type fields.
+type UnmarshalError struct {
+	Err   error
+	Value string
+	Type  reflect.Type
+}
+
+func (e *UnmarshalError) Error() string {
+	return fmt.Sprintf("tuples: cannot unmarshal %q into Go value of type %s",
+		e.Value, e.Type.String())
+}
+
+func (e *UnmarshalError) Unwrap() error {
+	return e.Err
 }
 
 type decodeState struct {
@@ -109,7 +114,7 @@ func (d *decodeState) array(v reflect.Value) error {
 		// do something
 		return errors.New("not implemented")
 	default:
-		return &UnmarshalTypeError{Value: "array", Type: v.Type()}
+		return &UnmarshalError{Value: "array", Type: v.Type()}
 	}
 
 	i := 0
@@ -230,19 +235,19 @@ func set(v reflect.Value, value string) error {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i, err := strconv.ParseInt(value, 10, 64) // nolint:gomnd
 		if err != nil {
-			return err
+			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
 		v.SetInt(i)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		i, err := strconv.ParseUint(value, 10, 64) // nolint:gomnd
 		if err != nil {
-			return err
+			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
 		v.SetUint(i)
 	case reflect.Bool:
 		b, err := strconv.ParseBool(value)
 		if err != nil {
-			return err
+			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
 		v.SetBool(b)
 	default:

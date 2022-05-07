@@ -1,6 +1,7 @@
 package tuples_test
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -47,10 +48,11 @@ type TInts struct {
 }
 
 type unmarshalTest struct {
-	in  string
-	ptr any
-	out any
-	err error
+	in         string
+	ptr        any
+	out        any
+	err        error
+	withUnwrap bool
 }
 
 var unmarshalTests = []unmarshalTest{
@@ -83,6 +85,17 @@ var unmarshalTests = []unmarshalTest{
 			{N: 21, UN8: 22, N16: 23, UN32: 24, N64: 25},
 		},
 	},
+
+	// invalid field value errors
+	{
+		in:         "adult=a",
+		ptr:        new([]T),
+		err:        &tuples.UnmarshalError{Value: "a", Type: reflect.TypeOf(true)},
+		withUnwrap: true,
+	},
+
+	// unsupported field type error
+
 	// TODO: add float test
 	// TODO: add array test
 	// TODO: add unmarshal to map test
@@ -91,6 +104,16 @@ var unmarshalTests = []unmarshalTest{
 	// 	- unmarshal to struct
 	// 	- unmarshal to invalid data types - decode string to int for example
 	//	- unmarshal to unsupported data types - decode to slices
+}
+
+func eqErrors(a, b error) bool {
+	if a == nil {
+		return b == nil
+	}
+	if b == nil {
+		return a == nil
+	}
+	return a.Error() == b.Error()
 }
 
 func TestUnmarshal(t *testing.T) {
@@ -103,12 +126,19 @@ func TestUnmarshal(t *testing.T) {
 		}
 		typ = typ.Elem()
 		got := reflect.New(typ)
-		err := tuples.Unmarshal(in, got.Interface())
-		if err != nil {
-			t.Fatalf("unexpected Unmarshal() error: %v", err)
+		if err := tuples.Unmarshal(in, got.Interface()); !eqErrors(err, tC.err) {
+			t.Errorf("#%d: unexpected Unmarshal() error: \ngot %v\nwant %v", i, err, tC.err)
+			continue
+		} else if err != nil {
+			if tC.withUnwrap && errors.Unwrap(err) == nil {
+				t.Errorf("#%d: Unmarshal() error should have wrapped error", i)
+			}
+			continue
 		}
+
 		if !reflect.DeepEqual(got.Elem().Interface(), tC.out) {
-			t.Fatalf("Unmarshal() output:\ngot %v\nwant %v", got, tC.out)
+			t.Errorf("Unmarshal() output:\ngot %v\nwant %v", got, tC.out)
+			continue
 		}
 	}
 }
