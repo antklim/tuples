@@ -47,6 +47,10 @@ type TInts struct {
 	UN64 uint64 `tuples:"un64"`
 }
 
+type TUnsupportedFldType struct {
+	A []string `tuples:"a"`
+}
+
 type unmarshalTest struct {
 	in         string
 	ptr        any
@@ -92,6 +96,23 @@ var unmarshalTests = []unmarshalTest{
 		ptr:        new([]T),
 		err:        &tuples.UnmarshalError{Value: "a", Type: reflect.TypeOf(true)},
 		withUnwrap: true,
+	},
+	{
+		in:         "n=a",
+		ptr:        new([]TInts),
+		err:        &tuples.UnmarshalError{Value: "a", Type: reflect.TypeOf(1)},
+		withUnwrap: true,
+	},
+	{
+		in:         "un=a",
+		ptr:        new([]TInts),
+		err:        &tuples.UnmarshalError{Value: "a", Type: reflect.TypeOf(uint(1))},
+		withUnwrap: true,
+	},
+	{
+		in:  "a=a,b",
+		ptr: new([]TUnsupportedFldType),
+		err: &tuples.UnmarshalUnsupportedTypeError{Type: reflect.TypeOf([]string{})},
 	},
 
 	// unsupported field type error
