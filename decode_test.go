@@ -2,6 +2,7 @@ package tuples_test
 
 import (
 	"errors"
+	"math"
 	"reflect"
 	"testing"
 
@@ -45,6 +46,11 @@ type TInts struct {
 	UN16 uint16 `tuples:"un16"`
 	UN32 uint32 `tuples:"un32"`
 	UN64 uint64 `tuples:"un64"`
+}
+
+type TFloats struct {
+	F32 float32 `tuples:"f32"`
+	F64 float64 `tuples:"f64"`
 }
 
 type TUnsupportedFldType struct {
@@ -94,6 +100,8 @@ var unmarshalTests = []UnmarshalTest{
 		ptr: new([2]T),
 		out: [2]T{{Name: "John", Age: 23, IsAdult: true}, {}},
 	},
+
+	// unmarshal numbers
 	{
 		in:  "n=1,n8=-2,n16=3,n32=-4,n64=5 un=11,un8=12,un16=13,un32=14,un64=15 n=21,un8=22,n16=23,un32=24,n64=25",
 		ptr: new([]TInts),
@@ -101,6 +109,19 @@ var unmarshalTests = []UnmarshalTest{
 			{N: 1, N8: -2, N16: 3, N32: -4, N64: 5},
 			{UN: 11, UN8: 12, UN16: 13, UN32: 14, UN64: 15},
 			{N: 21, UN8: 22, N16: 23, UN32: 24, N64: 25},
+		},
+	},
+	{
+		in:  "f32=1 f64=2 f32=3.4,f64=5.6 f32=inf,f64=inf f32=-inf,f64=-inf f32=+Inf,f64=+Inf f32=-Inf,f64=-Inf",
+		ptr: new([]TFloats),
+		out: []TFloats{
+			{F32: 1.0},
+			{F64: 2.0},
+			{F32: 3.4, F64: 5.6},
+			{F32: float32(math.Inf(0)), F64: math.Inf(0)},
+			{F32: float32(math.Inf(-1)), F64: math.Inf(-1)},
+			{F32: float32(math.Inf(0)), F64: math.Inf(0)},
+			{F32: float32(math.Inf(-1)), F64: math.Inf(-1)},
 		},
 	},
 
@@ -130,6 +151,18 @@ var unmarshalTests = []UnmarshalTest{
 		err:        &tuples.UnmarshalError{Value: "a", Type: reflect.TypeOf(uint(1))},
 		withUnwrap: true,
 	},
+	{
+		in:         "f32=a",
+		ptr:        new([]TFloats),
+		err:        &tuples.UnmarshalError{Value: "a", Type: reflect.TypeOf(float32(1))},
+		withUnwrap: true,
+	},
+	{
+		in:         "f64=a",
+		ptr:        new([]TFloats),
+		err:        &tuples.UnmarshalError{Value: "a", Type: reflect.TypeOf(float64(1))},
+		withUnwrap: true,
+	},
 
 	// unsupported field type error
 	{
@@ -138,7 +171,6 @@ var unmarshalTests = []UnmarshalTest{
 		err: &tuples.UnmarshalUnsupportedTypeError{Type: reflect.TypeOf([]string{})},
 	},
 
-	// TODO: add float test
 	// TODO: add unmarshal to map test
 	// TODO: add unmarshal to interface test
 }

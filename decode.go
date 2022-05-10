@@ -236,17 +236,29 @@ func set(v reflect.Value, value string) error {
 	case reflect.String:
 		v.SetString(value)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		i, err := strconv.ParseInt(value, 10, 64) // nolint:gomnd
+		n, err := strconv.ParseInt(value, 10, 64) // nolint:gomnd
 		if err != nil {
 			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
-		v.SetInt(i)
+		v.SetInt(n)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		i, err := strconv.ParseUint(value, 10, 64) // nolint:gomnd
+		n, err := strconv.ParseUint(value, 10, 64) // nolint:gomnd
 		if err != nil {
 			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
-		v.SetUint(i)
+		v.SetUint(n)
+	case reflect.Float32:
+		f, err := strconv.ParseFloat(value, 32) // nolint:gomnd
+		if err != nil {
+			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
+		}
+		v.SetFloat(f)
+	case reflect.Float64:
+		f, err := strconv.ParseFloat(value, 64) // nolint:gomnd
+		if err != nil {
+			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
+		}
+		v.SetFloat(f)
 	case reflect.Bool:
 		b, err := strconv.ParseBool(value)
 		if err != nil {
