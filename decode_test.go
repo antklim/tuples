@@ -132,6 +132,16 @@ var unmarshalTests = []UnmarshalTest{
 		err: &tuples.UnmarshalError{Value: "array", Type: reflect.TypeOf(T{})},
 	},
 
+	// unmarshal to interface
+	{
+		in:  "name=John,lname=Doe,age=17 n=1,n8=-2,n16=3,n32=-4,n64=5",
+		ptr: new(any),
+		out: []map[string]any{
+			{"name": "John", "lname": "Doe", "age": "17"},
+			{"n": "1", "n8": "-2", "n16": "3", "n32": "-4", "n64": "5"},
+		},
+	},
+
 	// invalid field value errors
 	{
 		in:         "adult=a",
@@ -170,9 +180,6 @@ var unmarshalTests = []UnmarshalTest{
 		ptr: new([]TUnsupportedFldType),
 		err: &tuples.UnmarshalUnsupportedTypeError{Type: reflect.TypeOf([]string{})},
 	},
-
-	// TODO: add unmarshal to map test
-	// TODO: add unmarshal to interface test
 }
 
 func eqErrors(a, b error) bool {
@@ -206,7 +213,7 @@ func TestUnmarshal(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(got.Elem().Interface(), tC.out) {
-			t.Errorf("#%d: Unmarshal() output:\ngot %v\nwant %v", i, got, tC.out)
+			t.Errorf("#%d: Unmarshal() output:\ngot  %v\nwant %v", i, got.Elem().Interface(), tC.out)
 			continue
 		}
 	}

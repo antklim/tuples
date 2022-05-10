@@ -3,7 +3,6 @@ package tuples
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -111,8 +110,7 @@ func (d *decodeState) array(v reflect.Value) error {
 	case reflect.Array, reflect.Slice:
 		break
 	case reflect.Interface:
-		// do something
-		return errors.New("not implemented")
+		return d.arrayInterface(v)
 	default:
 		return &UnmarshalError{Value: "array", Type: v.Type()}
 	}
@@ -187,7 +185,36 @@ func (d *decodeState) object(v reflect.Value) error {
 	return nil
 }
 
-func readFields(s string) [][]string {
+func (d *decodeState) arrayInterface(v reflect.Value) error {
+	// TODO: add test for NumMethod not 0
+	if v.NumMethod() != 0 {
+		return &UnmarshalError{Value: "array", Type: v.Type()}
+	}
+
+	var a = make([]map[string]any, 0)
+	for d.s.Scan() {
+		a = append(a, d.objectInterface())
+	}
+	v.Set(reflect.ValueOf(a))
+	return nil
+}
+
+func (d *decodeState) objectInterface() map[string]any {
+	m := make(map[string]any)
+	t := d.s.Text()
+	fv := readFields(t)
+	for _, fld := range fv {
+		m[fld[0]] = fld[1]
+	}
+	return m
+}
+
+// readFields reads a raw tuple string and returns a slice of tuple's fields.
+// Every field represented by field name, field value pair. For example:
+//
+//	s := "name=John,lname=Doe,age=17"
+//	fmt.Println(readFields(s)) // [[name John] [lname Doe] [age 17]]
+func readFields(s string) [][]string { // TODO: can return [][2]string
 	var fieldValues [][]string
 	fields := strings.FieldsFunc(s, func(c rune) bool { return c == ',' })
 	for _, f := range fields {
