@@ -117,6 +117,9 @@ func (d *decodeState) array(v reflect.Value) error {
 		return &UnmarshalError{Value: "array", Type: v.Type()}
 	}
 
+	// TODO: add decoder options that allow addition of the elements to non-empty
+	//			 slice or array. Currently elements are overwritten from the start.
+	// i := v.Len()
 	i := 0
 	for d.s.Scan() {
 		if v.Kind() == reflect.Slice {

@@ -51,7 +51,7 @@ type TUnsupportedFldType struct {
 	A []string `tuples:"a"`
 }
 
-type unmarshalTest struct {
+type UnmarshalTest struct {
 	in         string
 	ptr        any
 	out        any
@@ -59,7 +59,7 @@ type unmarshalTest struct {
 	withUnwrap bool
 }
 
-var unmarshalTests = []unmarshalTest{
+var unmarshalTests = []UnmarshalTest{
 	{in: "", ptr: new([]T), out: []T{}},
 	{
 		in:  "name=John,lname=Doe,age=17",
@@ -174,7 +174,7 @@ func TestUnmarshal(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(got.Elem().Interface(), tC.out) {
-			t.Errorf("Unmarshal() output:\ngot %v\nwant %v", got, tC.out)
+			t.Errorf("#%d: Unmarshal() output:\ngot %v\nwant %v", i, got, tC.out)
 			continue
 		}
 	}
