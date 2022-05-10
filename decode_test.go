@@ -57,6 +57,12 @@ type TUnsupportedFldType struct {
 	A []string `tuples:"a"`
 }
 
+type T2 struct {
+	Name string
+}
+
+func (t2 T2) String() string { return t2.Name }
+
 type UnmarshalTest struct {
 	in         string
 	ptr        any
@@ -203,7 +209,7 @@ func TestUnmarshal(t *testing.T) {
 		typ = typ.Elem()
 		got := reflect.New(typ)
 		if err := tuples.Unmarshal(in, got.Interface()); !eqErrors(err, tC.err) {
-			t.Errorf("#%d: unexpected Unmarshal() error: \ngot %v\nwant %v", i, err, tC.err)
+			t.Errorf("#%d: unexpected Unmarshal() error: \ngot  %v\nwant %v", i, err, tC.err)
 			continue
 		} else if err != nil {
 			if tC.withUnwrap && errors.Unwrap(err) == nil {

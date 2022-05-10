@@ -186,11 +186,6 @@ func (d *decodeState) object(v reflect.Value) error {
 }
 
 func (d *decodeState) arrayInterface(v reflect.Value) error {
-	// TODO: add test for NumMethod not 0
-	if v.NumMethod() != 0 {
-		return &UnmarshalError{Value: "array", Type: v.Type()}
-	}
-
 	var a = make([]map[string]any, 0)
 	for d.s.Scan() {
 		a = append(a, d.objectInterface())
