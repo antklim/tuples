@@ -155,7 +155,8 @@ func (d *decodeState) array(v reflect.Value) error {
 				v.Index(i).Set(z)
 			}
 		} else {
-			v.SetLen(i) // ???? is it in case when slice is prefilled ???? add test
+			// Cut off the rest of prefilled slice.
+			v.SetLen(i)
 		}
 	}
 

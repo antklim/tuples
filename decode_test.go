@@ -224,3 +224,19 @@ func TestUnmarshal(t *testing.T) {
 		}
 	}
 }
+
+func TestUnmarshalToPrefilledSlice(t *testing.T) {
+	cp, ln := 5, 1
+	got := make([]T, cp)
+	in := "name=John,lname=Doe,age=17"
+	err := tuples.Unmarshal([]byte(in), &got)
+	if err != nil {
+		t.Fatalf("unexpected Unmarshal() error: \ngot %v", err)
+	}
+	if len(got) != ln {
+		t.Errorf("Unmarshal() output len: \ngot  %d\nwant %d", len(got), ln)
+	}
+	if cap(got) != cp {
+		t.Errorf("Unmarshal() output cap: \ngot  %d\nwant %d", len(got), cp)
+	}
+}
