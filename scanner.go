@@ -8,6 +8,11 @@ import (
 )
 
 const (
+	idxKey = iota
+	idxVal
+)
+
+const (
 	defaultFieldsDelimiter   = ','
 	defaultKeyValueDelimiter = '='
 )
