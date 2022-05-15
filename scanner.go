@@ -7,10 +7,10 @@ import (
 	"strings"
 )
 
-const (
-	idxKey = iota
-	idxVal
-)
+// const (
+// 	idxKey = iota
+// 	idxVal
+// )
 
 const (
 	defaultFieldsDelimiter   = ','
