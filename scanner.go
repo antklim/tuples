@@ -72,7 +72,7 @@ func (s *scanner) next() ([][]string, bool) {
 	return tuple, s.state == scanDone
 }
 
-func (s *scanner) tuple() [][]string { // TODO: can return [][2]string
+func (s *scanner) tuple() [][]string {
 	s.pos++
 
 	// It splits "name=John,lname=Doe,age=17" to ["name=John", "lname=Doe", "age=17"].
