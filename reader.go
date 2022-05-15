@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 )
 
+// TODO: move to scanner
 var errInvalidDelim = errors.New("tuples: invalid fields or key values delimiter")
 
 func validDelim(r rune) bool {

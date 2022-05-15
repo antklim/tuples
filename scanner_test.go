@@ -14,6 +14,8 @@ type scanTest struct {
 }
 
 var scanTests = []scanTest{{
+	desc: "Empty input",
+}, {
 	desc: "Single tuple",
 	in:   "fname=John,lname=Doe,dob=2000-01-01",
 	out:  [][][]string{{{"fname", "John"}, {"lname", "Doe"}, {"dob", "2000-01-01"}}},
@@ -33,7 +35,9 @@ func TestNext(t *testing.T) {
 			var out [][][]string
 			for {
 				tuple, done := s.next()
-				out = append(out, tuple)
+				if tuple != nil {
+					out = append(out, tuple)
+				}
 				if done {
 					break
 				}
@@ -52,5 +56,17 @@ func TestNext(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestNextAfterDone(t *testing.T) {
+	s := newScanner(strings.NewReader("fname=John"))
+	s.next()
+	out, done := s.next()
+	if out != nil {
+		t.Errorf("scan tuple() output:\ngot  %v\nwant nil", out)
+	}
+	if !done {
+		t.Errorf("scan tuple() done:\ngot  %t\nwant true", done)
 	}
 }
