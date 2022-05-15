@@ -2,6 +2,7 @@ package tuples
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"strings"
 )
@@ -20,9 +21,10 @@ const (
 type scanner struct {
 	s     *bufio.Scanner
 	state int
+	pos   int
 	err   error
-	fd    rune
-	kvd   rune
+	fd    rune // fields delimiter
+	kvd   rune // key-values delimiter
 }
 
 // TODO: add options
@@ -59,7 +61,11 @@ func (s *scanner) next() ([][]string, bool) {
 	}
 
 	tuple := s.tuple()
-	if !s.s.Scan() {
+	if s.err != nil {
+		s.state = scanDone
+	}
+
+	if s.state == scanTuple && !s.s.Scan() {
 		s.state = scanDone
 		s.err = s.s.Err()
 	}
@@ -67,12 +73,18 @@ func (s *scanner) next() ([][]string, bool) {
 }
 
 func (s *scanner) tuple() [][]string { // TODO: can return [][2]string
+	s.pos++
+
 	// It splits "name=John,lname=Doe,age=17" to ["name=John", "lname=Doe", "age=17"].
 	fields := strings.FieldsFunc(s.s.Text(), splitFunc(s.fd))
 	var tuple [][]string
-	for _, f := range fields {
+	for i, f := range fields {
 		// It splits "name=John" into ["name", "John"].
 		kv := strings.FieldsFunc(f, splitFunc(s.kvd))
+		if len(kv) != 2 { // nolint: gomnd
+			s.err = fmt.Errorf("tuples: tuple #%d invalid field #%d", s.pos, i+1)
+			return nil
+		}
 		tuple = append(tuple, kv)
 	}
 	return tuple
