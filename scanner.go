@@ -43,43 +43,41 @@ func newScanner(r io.Reader) *scanner {
 	}
 }
 
-// next reads a raw tuple string and returns a slice of tuple's fields. In the
-// second output parameter it returns if scan finished. For example:
+// TODO: update comments
+// next moves the scanner along the tuples values. It returns false if scanning
+// finished or error occurred. To get scanned values the tupple method called.
+// For example:
 //
 //	s := newScanner(strings.NewReader("name=John,lname=Doe,age=17"))
-//	fmt.Println(s.next()) // [[name John] [lname Doe] [age 17]], true
+//	fmt.Println(s.next()) // [[name John] [lname Doe] [age 17]], false
 //
 //	s := newScanner(strings.NewReader("fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10"))
 //	fmt.Println(s.next()) // [[name John] [lname Doe] [age 17]], false
-func (s *scanner) next() ([][]string, bool) {
-	if s.state == scanDone {
-		return nil, true
-	}
-
-	if s.state == scanReady {
-		if !s.s.Scan() {
-			s.state = scanDone
-			s.err = s.s.Err()
-			return nil, true
-		}
-		s.state = scanTuple
-	}
-
-	tuple := s.tuple()
+func (s *scanner) next() bool {
 	if s.err != nil {
 		s.state = scanDone
 	}
-
-	if s.state == scanTuple && !s.s.Scan() {
+	if s.state == scanDone {
+		return false
+	}
+	if s.state == scanReady {
+		s.state = scanTuple
+	}
+	if !s.s.Scan() {
 		s.state = scanDone
 		s.err = s.s.Err()
+	} else {
+		s.pos++
 	}
-	return tuple, s.state == scanDone
+	return s.state != scanDone
+}
+
+// TODO: implement
+func (s *scanner) nextTimes(n int) bool {
+	panic("not implemented")
 }
 
 func (s *scanner) tuple() [][]string {
-	s.pos++
-
 	// It splits "name=John,lname=Doe,age=17" to ["name=John", "lname=Doe", "age=17"].
 	fields := strings.FieldsFunc(s.s.Text(), splitFunc(s.fd))
 	var tuple [][]string

@@ -50,13 +50,10 @@ func TestNext(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			s := newScanner(strings.NewReader(tC.in))
 			var out [][][]string
-			for {
-				tuple, done := s.next()
-				if tuple != nil {
+			// while has next
+			for s.next() {
+				if tuple := s.tuple(); tuple != nil {
 					out = append(out, tuple)
-				}
-				if done {
-					break
 				}
 			}
 
@@ -80,12 +77,25 @@ func TestNext(t *testing.T) {
 
 func TestNextAfterDone(t *testing.T) {
 	s := newScanner(strings.NewReader("fname=John"))
-	s.next()
-	out, done := s.next()
-	if out != nil {
+	if !s.next() {
+		t.Error("scan next():\ngot  false\nwant true")
+	}
+	if s.next() {
+		t.Error("scan next():\ngot  true\nwant false")
+	}
+	if out := s.tuple(); out != nil {
 		t.Errorf("scan next() output:\ngot  %v\nwant nil", out)
 	}
-	if !done {
-		t.Errorf("scan next() done:\ngot  %t\nwant true", done)
+}
+
+func TestDoubleNext(t *testing.T) {
+	s := newScanner(strings.NewReader("fname=John fname=Bob"))
+	s.next()
+	s.next()
+
+	// Tuple should return the latest data
+	want := [][]string{{"fname", "Bob"}}
+	if out := s.tuple(); !reflect.DeepEqual(out, want) {
+		t.Errorf("scan tuple() output:\ngot  %v\nwant %v", out, want)
 	}
 }
