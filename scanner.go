@@ -7,10 +7,10 @@ import (
 	"strings"
 )
 
-// const (
-// 	idxKey = iota
-// 	idxVal
-// )
+const (
+	idxKey = iota
+	idxVal
+)
 
 const (
 	defaultFieldsDelimiter   = ','
@@ -80,6 +80,7 @@ func (s *scanner) nextTimes(n int) bool {
 	return s.state != scanDone
 }
 
+// TODO: add error return
 func (s *scanner) tuple() [][]string {
 	// It splits "name=John,lname=Doe,age=17" to ["name=John", "lname=Doe", "age=17"].
 	fields := strings.FieldsFunc(s.s.Text(), splitFunc(s.fd))
@@ -91,7 +92,7 @@ func (s *scanner) tuple() [][]string {
 			s.err = fmt.Errorf("tuples: tuple #%d invalid field #%d", s.pos, i+1)
 			return nil
 		}
-		tuple = append(tuple, kv)
+		tuple = append(tuple, []string{kv[idxKey], kv[idxVal]})
 	}
 	return tuple
 }

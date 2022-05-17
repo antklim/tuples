@@ -1,12 +1,10 @@
 package tuples
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 )
 
 // Unmarshal parses the tuples-encoded data and stores the result in the value
@@ -65,13 +63,12 @@ func (e *UnmarshalError) Unwrap() error {
 type decodeState struct {
 	data   []byte
 	opcode int
-	s      *bufio.Scanner // TODO: create a separate scanner and reuse it in reader
+	s      *scanner
 }
 
 func (d *decodeState) init(data []byte) {
 	d.data = data
-	d.s = bufio.NewScanner(bytes.NewReader(data))
-	d.s.Split(bufio.ScanWords)
+	d.s = newScanner(bytes.NewReader(data))
 }
 
 func (d *decodeState) unmarshal(v any) error {
@@ -119,7 +116,7 @@ func (d *decodeState) array(v reflect.Value) error {
 	//			 slice or array. Currently elements are overwritten from the start.
 	// i := v.Len()
 	i := 0
-	for d.s.Scan() {
+	for d.s.next() {
 		if v.Kind() == reflect.Slice {
 			// Grow slice if necessary.
 			if i >= v.Cap() {
@@ -167,16 +164,14 @@ func (d *decodeState) array(v reflect.Value) error {
 }
 
 func (d *decodeState) object(v reflect.Value) error {
-	t := d.s.Text()
-	fv := readFields(t)
-
-	for _, fld := range fv {
-		fname, fvalue := fld[0], fld[1]
+	flds := d.s.tuple()
+	if d.s.err != nil {
+		return d.s.err
+	}
+	for _, fld := range flds {
 		for i := 0; i < v.Type().NumField(); i++ {
-			field := v.Type().Field(i)
-			tag := field.Tag.Get("tuples")
-			if tag == fname {
-				if err := set(v.Field(i), fvalue); err != nil {
+			if tag := v.Type().Field(i).Tag.Get("tuples"); tag == fld[idxKey] {
+				if err := set(v.Field(i), fld[idxVal]); err != nil {
 					return err
 				}
 			}
@@ -188,36 +183,24 @@ func (d *decodeState) object(v reflect.Value) error {
 
 func (d *decodeState) arrayInterface(v reflect.Value) error {
 	var a = make([]map[string]any, 0)
-	for d.s.Scan() {
+	for d.s.next() {
 		a = append(a, d.objectInterface())
 	}
 	v.Set(reflect.ValueOf(a))
 	return nil
 }
 
+// TODO: add error return
 func (d *decodeState) objectInterface() map[string]any {
 	m := make(map[string]any)
-	t := d.s.Text()
-	fv := readFields(t)
-	for _, fld := range fv {
-		m[fld[0]] = fld[1]
+	flds := d.s.tuple()
+	if d.s.err != nil {
+		return nil
+	}
+	for _, fld := range flds {
+		m[fld[idxKey]] = fld[idxVal]
 	}
 	return m
-}
-
-// readFields reads a raw tuple string and returns a slice of tuple's fields.
-// Every field represented by field name, field value pair. For example:
-//
-//	s := "name=John,lname=Doe,age=17"
-//	fmt.Println(readFields(s)) // [[name John] [lname Doe] [age 17]]
-func readFields(s string) [][]string { // TODO: can return [][2]string
-	var fieldValues [][]string
-	fields := strings.FieldsFunc(s, func(c rune) bool { return c == ',' })
-	for _, f := range fields {
-		kv := strings.FieldsFunc(f, func(c rune) bool { return c == '=' })
-		fieldValues = append(fieldValues, kv)
-	}
-	return fieldValues
 }
 
 // indirect walks down v until it gets to a non-pointer.

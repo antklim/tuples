@@ -182,9 +182,16 @@ var unmarshalTests = []UnmarshalTest{
 
 	// unsupported field type error
 	{
-		in:  "a=a,b",
+		in:  "a=a",
 		ptr: new([]TUnsupportedFldType),
 		err: &tuples.UnmarshalUnsupportedTypeError{Type: reflect.TypeOf([]string{})},
+	},
+
+	// invalid tuple expression
+	{
+		in:  "a=a,b",
+		ptr: new([]T),
+		err: errors.New("tuples: tuple #1 invalid field #2"),
 	},
 }
 
