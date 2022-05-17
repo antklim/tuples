@@ -61,9 +61,8 @@ func (e *UnmarshalError) Unwrap() error {
 }
 
 type decodeState struct {
-	data   []byte
-	opcode int
-	s      *scanner
+	data []byte
+	s    *scanner
 }
 
 func (d *decodeState) init(data []byte) {
@@ -81,18 +80,16 @@ func (d *decodeState) unmarshal(v any) error {
 
 func (d *decodeState) value(v reflect.Value) error {
 	v = indirect(v)
-	// TODO: add opcode constants
-	switch d.opcode {
-	case 0:
-		// if it's the beginning of decode then v should be slice, array or interface
-		d.opcode = 1
+	switch d.s.state {
+	case scanReady:
+		// The beginning of scanning, v should be a slice, array or interface.
 		if v.IsValid() {
 			if err := d.array(v); err != nil {
 				return err
 			}
 		}
-	case 1:
-		// if it's an iteration of the decoding then v should be a struct
+	case scanTuple:
+		// In the middle of scanning, v should be a struct.
 		if v.IsValid() {
 			if err := d.object(v); err != nil {
 				return err
@@ -177,7 +174,6 @@ func (d *decodeState) object(v reflect.Value) error {
 			}
 		}
 	}
-
 	return nil
 }
 
