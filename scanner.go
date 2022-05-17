@@ -50,7 +50,7 @@ func newScanner(r io.Reader) *scanner {
 //	in := strings.NewReader("name=Rob,lname=Doe name=Bob,lname=Smith")
 //	s := newScanner(in)
 //	for s.next() {
-//		fmt.Println(s.tupple())
+//		fmt.Println(s.tuple())
 //	}
 //
 //	// Output:
@@ -75,9 +75,10 @@ func (s *scanner) next() bool {
 	return s.state != scanDone
 }
 
-// TODO: implement
 func (s *scanner) nextTimes(n int) bool {
-	panic("not implemented")
+	for ; s.next() && n > 1; n-- {
+	}
+	return s.state != scanDone
 }
 
 func (s *scanner) tuple() [][]string {

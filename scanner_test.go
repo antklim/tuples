@@ -77,21 +77,17 @@ func TestNext(t *testing.T) {
 
 func TestNextAfterDone(t *testing.T) {
 	s := newScanner(strings.NewReader("fname=John"))
-	if !s.next() {
-		t.Error("scan next():\ngot  false\nwant true")
-	}
-	if s.next() {
-		t.Error("scan next():\ngot  true\nwant false")
+	if s.nextTimes(2) {
+		t.Error("scan nextTimes(2):\ngot  true\nwant false")
 	}
 	if out := s.tuple(); out != nil {
-		t.Errorf("scan next() output:\ngot  %v\nwant nil", out)
+		t.Errorf("scan tuple(2) output:\ngot  %v\nwant nil", out)
 	}
 }
 
 func TestDoubleNext(t *testing.T) {
 	s := newScanner(strings.NewReader("fname=John fname=Bob"))
-	s.next()
-	s.next()
+	s.nextTimes(2)
 
 	// Tuple should return the latest data
 	want := [][]string{{"fname", "Bob"}}
