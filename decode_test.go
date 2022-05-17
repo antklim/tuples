@@ -193,6 +193,16 @@ var unmarshalTests = []UnmarshalTest{
 		ptr: new([]T),
 		err: errors.New("tuples: tuple #1 invalid field #2"),
 	},
+
+	// invalid tuple expression and unmarshal to interface
+	// {
+	// 	in:  "name=John,lname=Doe,age=17,1",
+	// 	ptr: new(any),
+	// 	out: []map[string]any{
+	// 		{"name": "John", "lname": "Doe", "age": "17"},
+	// 		{"n": "1", "n8": "-2", "n16": "3", "n32": "-4", "n64": "5"},
+	// 	},
+	// },
 }
 
 func eqErrors(a, b error) bool {

@@ -50,16 +50,19 @@ func TestNext(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			s := newScanner(strings.NewReader(tC.in))
 			var out [][][]string
+			var tuple [][]string
+			var err error
 			// while has next
 			for s.next() {
-				if tuple := s.tuple(); tuple != nil {
+				tuple, err = s.tuple()
+				if tuple != nil {
 					out = append(out, tuple)
 				}
 			}
 
 			if tC.err != nil {
-				if s.err == nil || (s.err.Error() != tC.err.Error()) {
-					t.Fatalf("scan next() error mismatch:\ngot  %v\nwant %v", s.err, tC.err)
+				if err == nil || (err.Error() != tC.err.Error()) {
+					t.Fatalf("scan next() error mismatch:\ngot  %v\nwant %v", err, tC.err)
 				}
 			} else {
 				for i, tout := range tC.out {
@@ -80,8 +83,12 @@ func TestNextAfterDone(t *testing.T) {
 	if s.nextTimes(2) {
 		t.Error("scan nextTimes(2):\ngot  true\nwant false")
 	}
-	if out := s.tuple(); out != nil {
-		t.Errorf("scan tuple(2) output:\ngot  %v\nwant nil", out)
+	out, err := s.tuple()
+	if err != nil {
+		t.Errorf("unexpected scan tuple() error: %v", err)
+	}
+	if out != nil {
+		t.Errorf("scan tuple() output:\ngot  %v\nwant nil", out)
 	}
 }
 
@@ -91,13 +98,17 @@ func TestDoubleNext(t *testing.T) {
 
 	// Tuple should return the latest data
 	want := [][]string{{"fname", "Bob"}}
-	if out := s.tuple(); !reflect.DeepEqual(out, want) {
+	out, err := s.tuple()
+	if err != nil {
+		t.Errorf("unexpected scan tuple() error: %v", err)
+	}
+	if !reflect.DeepEqual(out, want) {
 		t.Errorf("scan tuple() output:\ngot  %v\nwant %v", out, want)
 	}
 }
 
 func TestNextTimes(t *testing.T) {
-	// TODO: move TestNextAfterDone and TestDoubleNext into here
+	// TODO(chore): move TestNextAfterDone and TestDoubleNext into here
 	testCases := []struct {
 		desc string
 	}{

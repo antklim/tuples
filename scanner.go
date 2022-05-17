@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+// TODO(feat): add scanner error
+// TODO(feat): use interfaces to differentiate error types
+
 const (
 	idxKey = iota
 	idxVal
@@ -32,7 +35,7 @@ type scanner struct {
 	kvd   rune // key-values delimiter
 }
 
-// TODO: add options
+// TODO(feat): add options
 func newScanner(r io.Reader) *scanner {
 	s := bufio.NewScanner(r)
 	s.Split(bufio.ScanWords)
@@ -80,8 +83,7 @@ func (s *scanner) nextTimes(n int) bool {
 	return s.state != scanDone
 }
 
-// TODO: add error return
-func (s *scanner) tuple() [][]string {
+func (s *scanner) tuple() ([][]string, error) {
 	// It splits "name=John,lname=Doe,age=17" to ["name=John", "lname=Doe", "age=17"].
 	fields := strings.FieldsFunc(s.s.Text(), splitFunc(s.fd))
 	var tuple [][]string
@@ -90,11 +92,11 @@ func (s *scanner) tuple() [][]string {
 		kv := strings.FieldsFunc(f, splitFunc(s.kvd))
 		if len(kv) != 2 { // nolint: gomnd
 			s.err = fmt.Errorf("tuples: tuple #%d invalid field #%d", s.pos, i+1)
-			return nil
+			return nil, s.err
 		}
 		tuple = append(tuple, []string{kv[idxKey], kv[idxVal]})
 	}
-	return tuple
+	return tuple, nil
 }
 
 func splitFunc(dlm rune) func(rune) bool {

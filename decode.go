@@ -109,7 +109,7 @@ func (d *decodeState) array(v reflect.Value) error {
 		return &UnmarshalError{Value: "array", Type: v.Type()}
 	}
 
-	// TODO: add decoder options that allow addition of the elements to non-empty
+	// TODO(feat): add decoder options that allow addition of the elements to non-empty
 	//			 slice or array. Currently elements are overwritten from the start.
 	// i := v.Len()
 	i := 0
@@ -161,9 +161,9 @@ func (d *decodeState) array(v reflect.Value) error {
 }
 
 func (d *decodeState) object(v reflect.Value) error {
-	flds := d.s.tuple()
-	if d.s.err != nil {
-		return d.s.err
+	flds, err := d.s.tuple()
+	if err != nil {
+		return err
 	}
 	for _, fld := range flds {
 		for i := 0; i < v.Type().NumField(); i++ {
@@ -189,8 +189,8 @@ func (d *decodeState) arrayInterface(v reflect.Value) error {
 // TODO: add error return
 func (d *decodeState) objectInterface() map[string]any {
 	m := make(map[string]any)
-	flds := d.s.tuple()
-	if d.s.err != nil {
+	flds, err := d.s.tuple()
+	if err != nil {
 		return nil
 	}
 	for _, fld := range flds {
