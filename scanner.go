@@ -43,16 +43,19 @@ func newScanner(r io.Reader) *scanner {
 	}
 }
 
-// TODO: update comments
 // next moves the scanner along the tuples values. It returns false if scanning
-// finished or error occurred. To get scanned values the tupple method called.
+// finished or error occurred. Call tupple() to get scanned values.
 // For example:
 //
-//	s := newScanner(strings.NewReader("name=John,lname=Doe,age=17"))
-//	fmt.Println(s.next()) // [[name John] [lname Doe] [age 17]], false
+//	in := strings.NewReader("name=Rob,lname=Doe name=Bob,lname=Smith")
+//	s := newScanner(in)
+//	for s.next() {
+//		fmt.Println(s.tupple())
+//	}
 //
-//	s := newScanner(strings.NewReader("fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10"))
-//	fmt.Println(s.next()) // [[name John] [lname Doe] [age 17]], false
+//	// Output:
+//	// [[name Rob] [lname Doe]]
+//	// [[name Bob] [lname Smith]]
 func (s *scanner) next() bool {
 	if s.err != nil {
 		s.state = scanDone
