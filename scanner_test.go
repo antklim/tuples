@@ -95,3 +95,19 @@ func TestDoubleNext(t *testing.T) {
 		t.Errorf("scan tuple() output:\ngot  %v\nwant %v", out, want)
 	}
 }
+
+func TestNextTimes(t *testing.T) {
+	// TODO: move TestNextAfterDone and TestDoubleNext into here
+	testCases := []struct {
+		desc string
+	}{
+		{
+			desc: "",
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+
+		})
+	}
+}
