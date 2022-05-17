@@ -69,9 +69,8 @@ func (s *scanner) next() bool {
 	if !s.s.Scan() {
 		s.state = scanDone
 		s.err = s.s.Err()
-	} else {
-		s.pos++
 	}
+	s.pos++
 	return s.state != scanDone
 }
 
