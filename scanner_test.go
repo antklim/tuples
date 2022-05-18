@@ -46,7 +46,7 @@ var scanTests = []scanTest{{
 }}
 
 func TestNext(t *testing.T) {
-	for _, tC := range scanTests {
+	for tI, tC := range scanTests {
 		t.Run(tC.desc, func(t *testing.T) {
 			s := newScanner(strings.NewReader(tC.in))
 			var out [][][]string
@@ -62,16 +62,20 @@ func TestNext(t *testing.T) {
 
 			if tC.err != nil {
 				if err == nil || (err.Error() != tC.err.Error()) {
-					t.Fatalf("scan next() error mismatch:\ngot  %v\nwant %v", err, tC.err)
+					t.Errorf("#%d: scan next() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
+				}
+				var e ScannerError
+				if !errors.As(err, &e) || !e.ScanFailed() {
+					t.Errorf("#%d: scan next() error is not a ScanError", tI)
 				}
 			} else {
 				for i, tout := range tC.out {
 					if !reflect.DeepEqual(out[i], tout) {
-						t.Errorf("#%d: scan next() output:\ngot  %v\nwant %v", i, out[i], tout)
+						t.Errorf("#%d: scan next() output #%d:\ngot  %v\nwant %v", tI, i, out[i], tout)
 					}
 				}
 				if len(out) != len(tC.out) {
-					t.Errorf("scan next() output length mismatch:\ngot  %d\nwant %d", len(out), len(tC.out))
+					t.Errorf("#%d: scan next() output length mismatch:\ngot  %d\nwant %d", tI, len(out), len(tC.out))
 				}
 			}
 		})

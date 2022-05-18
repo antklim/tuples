@@ -7,8 +7,17 @@ import (
 	"strings"
 )
 
-// TODO(feat): add scanner error
-// TODO(feat): use interfaces to differentiate error types
+// ScannerError describes an error that occurred while scanning a tuple.
+type ScannerError interface {
+	error
+	ScanFailed() bool
+}
+
+type scannerError struct {
+	error
+}
+
+func (e scannerError) ScanFailed() bool { return true }
 
 const (
 	idxKey = iota
@@ -71,7 +80,9 @@ func (s *scanner) next() bool {
 	}
 	if !s.s.Scan() {
 		s.state = scanDone
-		s.err = s.s.Err()
+		if err := s.s.Err(); err != nil {
+			s.err = scannerError{err}
+		}
 	}
 	s.pos++
 	return s.state != scanDone
@@ -91,7 +102,7 @@ func (s *scanner) tuple() ([][]string, error) {
 		// It splits "name=John" into ["name", "John"].
 		kv := strings.FieldsFunc(f, splitFunc(s.kvd))
 		if len(kv) != 2 { // nolint: gomnd
-			s.err = fmt.Errorf("tuples: tuple #%d invalid field #%d", s.pos, i+1)
+			s.err = scannerError{fmt.Errorf("tuples: tuple #%d invalid field #%d", s.pos, i+1)}
 			return nil, s.err
 		}
 		tuple = append(tuple, []string{kv[idxKey], kv[idxVal]})
