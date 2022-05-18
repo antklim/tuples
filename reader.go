@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 )
 
+// TODO: move to scanner
 var errInvalidDelim = errors.New("tuples: invalid fields or key values delimiter")
 
 func validDelim(r rune) bool {
@@ -17,7 +18,7 @@ func validDelim(r rune) bool {
 type Reader struct {
 	FieldsDelimiter rune
 	KeyValDelimiter rune
-	s               *bufio.Scanner
+	s               *bufio.Scanner // TODO: use scanner
 }
 
 func NewReader(r io.Reader) *Reader {
