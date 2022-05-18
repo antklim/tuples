@@ -179,24 +179,29 @@ func (d *decodeState) object(v reflect.Value) error {
 
 func (d *decodeState) arrayInterface(v reflect.Value) error {
 	var a = make([]map[string]any, 0)
+	var er error
 	for d.s.next() {
-		a = append(a, d.objectInterface())
+		if oi, err := d.objectInterface(); err != nil {
+			er = err
+			break
+		} else if oi != nil {
+			a = append(a, oi)
+		}
 	}
 	v.Set(reflect.ValueOf(a))
-	return nil
+	return er
 }
 
-// TODO: add error return
-func (d *decodeState) objectInterface() map[string]any {
+func (d *decodeState) objectInterface() (map[string]any, error) {
 	m := make(map[string]any)
 	flds, err := d.s.tuple()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	for _, fld := range flds {
 		m[fld[idxKey]] = fld[idxVal]
 	}
-	return m
+	return m, nil
 }
 
 // indirect walks down v until it gets to a non-pointer.
