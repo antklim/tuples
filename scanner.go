@@ -2,22 +2,25 @@ package tuples
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
+	"unicode/utf8"
 )
 
 // ScannerError describes an error that occurred while scanning a tuple.
-type ScannerError interface {
-	error
-	ScanFailed() bool
-}
-
-type scannerError struct {
+type ScannerError struct {
 	error
 }
 
-func (e scannerError) ScanFailed() bool { return true }
+// type InvalidScannerOptionError interface {
+// 	error
+// 	InvalidScannerOption() string
+// }
+
+// type invalidScannerOptionError struct {
+// }
 
 const (
 	idxKey = iota
@@ -33,6 +36,23 @@ const (
 type scannerOptions struct {
 	fd  rune // fields delimiter
 	kvd rune // key-values delimiter
+}
+
+func (so *scannerOptions) validate() error {
+	if so.fd == so.kvd {
+		return errors.New("invalid delimiter")
+	}
+	if !validDelim(so.fd) {
+		return errors.New("invalid delimiter")
+	}
+	if !validDelim(so.kvd) {
+		return errors.New("invalid delimiter")
+	}
+	return nil
+}
+
+func validDelim(r rune) bool {
+	return r != 0 && utf8.ValidRune(r) && r != utf8.RuneError
 }
 
 var defaultScannerOptions = scannerOptions{fd: ',', kvd: '='}
@@ -87,7 +107,7 @@ func (s *scanner) next() bool {
 	if !s.s.Scan() {
 		s.state = scanDone
 		if err := s.s.Err(); err != nil {
-			s.err = scannerError{err}
+			s.err = ScannerError{err}
 		}
 	}
 	s.pos++
@@ -108,7 +128,7 @@ func (s *scanner) tuple() ([][]string, error) {
 		// It splits "name=John" into ["name", "John"].
 		kv := strings.FieldsFunc(f, splitFunc(s.opts.kvd))
 		if len(kv) != 2 { // nolint: gomnd
-			s.err = scannerError{fmt.Errorf("tuples: tuple #%d invalid field #%d", s.pos, i+1)}
+			s.err = ScannerError{fmt.Errorf("tuples: tuple #%d invalid field #%d", s.pos, i+1)}
 			return nil, s.err
 		}
 		tuple = append(tuple, []string{kv[idxKey], kv[idxVal]})

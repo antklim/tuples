@@ -5,15 +5,10 @@ import (
 	"errors"
 	"io"
 	"strings"
-	"unicode/utf8"
 )
 
 // TODO: move to scanner
 var errInvalidDelim = errors.New("tuples: invalid fields or key values delimiter")
-
-func validDelim(r rune) bool {
-	return r != 0 && utf8.ValidRune(r) && r != utf8.RuneError
-}
 
 type Reader struct {
 	FieldsDelimiter rune

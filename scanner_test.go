@@ -65,7 +65,7 @@ func TestNext(t *testing.T) {
 					t.Errorf("#%d: scan next() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
 				}
 				var e ScannerError
-				if !errors.As(err, &e) || !e.ScanFailed() {
+				if !errors.As(err, &e) {
 					t.Errorf("#%d: scan next() error is not a ScanError", tI)
 				}
 			} else {
