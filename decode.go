@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+// TODO(chore): update error types to interfaces
+
 // Unmarshal parses the tuples-encoded data and stores the result in the value
 // pointed to by v.
 // If v is nil or not a pointer, Unmarshal returns an InvalidUnmarshalError.

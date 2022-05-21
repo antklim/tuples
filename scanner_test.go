@@ -126,3 +126,55 @@ func TestNextTimes(t *testing.T) {
 		})
 	}
 }
+
+func TestScannerOptions(t *testing.T) {
+	t.Run("scanner with default settings", func(t *testing.T) {
+		s := newScanner(nil)
+		if s.opts.fd != defaultFieldsDelimiter {
+			t.Errorf("newScanner() invalid fields delimiter:\ngot %c\nwant %c", s.opts.fd, defaultFieldsDelimiter)
+		}
+		if s.opts.kvd != defaultKeyValueDelimiter {
+			t.Errorf("newScanner() invalid key-value delimiter:\ngot %c\nwant %c", s.opts.kvd, defaultKeyValueDelimiter)
+		}
+	})
+
+	t.Run("scanner with custom fields delimiter", func(t *testing.T) {
+		s := newScanner(nil, withFieldsDelimiter(';'))
+		if s.opts.fd != ';' {
+			t.Errorf("newScanner() invalid fields delimiter:\ngot %c\nwant ;", s.opts.fd)
+		}
+		if s.opts.kvd != defaultKeyValueDelimiter {
+			t.Errorf("newScanner() invalid key-value delimiter:\ngot %c\nwant %c", s.opts.kvd, defaultKeyValueDelimiter)
+		}
+	})
+
+	t.Run("scanner with custom key-value delimiter", func(t *testing.T) {
+		s := newScanner(nil, withKeyValueDelimiter(':'))
+		if s.opts.fd != defaultFieldsDelimiter {
+			t.Errorf("newScanner() invalid fields delimiter:\ngot %c\nwant ;", s.opts.fd)
+		}
+		if s.opts.kvd != ':' {
+			t.Errorf("newScanner() invalid key-value delimiter:\ngot %c\nwant :", s.opts.kvd)
+		}
+	})
+
+	// t.Run("scanner with custom fields and key-value delimiters", func(t *testing.T) {
+	// 	s := newScanner(nil, withFieldsDelimiter(';'), withKeyValueDelimiter(':'))
+	// 	if s.fd != ';' {
+	// 		t.Errorf("newScanner() invalid fields delimiter:\ngot %c\nwant ;", s.fd)
+	// 	}
+	// 	if s.kvd != ':' {
+	// 		t.Errorf("newScanner() invalid key-value delimiter:\ngot %c\nwant :", s.kvd)
+	// 	}
+	// })
+
+	// t.Run("scanner does not allow equal delimiters", func(t *testing.T) {
+	// 	s := newScanner(nil, withFieldsDelimiter(';'), withKeyValueDelimiter(';'))
+	// 	// should return error
+	// })
+
+	// t.Run("scanner does not allow invalid UTF symbols ad delimiter", func(t *testing.T) {
+	// 	s := newScanner(nil, withFieldsDelimiter('invalid utf symbol'))
+	// 	// should return error
+	// })
+}
