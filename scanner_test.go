@@ -127,46 +127,39 @@ func TestNextTimes(t *testing.T) {
 	}
 }
 
+type scannerOptTest struct {
+	desc  string
+	opts  []scannerOption
+	sopts scannerOptions
+	err   error
+}
+
+var scannerOptTests = []scannerOptTest{{
+	desc:  "scanner with default settings",
+	sopts: scannerOptions{fd: ',', kvd: '='},
+}, {
+	desc:  "scanner with custom fields delimiter",
+	opts:  []scannerOption{withFieldsDelimiter(';')},
+	sopts: scannerOptions{fd: ';', kvd: '='},
+}, {
+	desc:  "scanner with custom key-value delimiter",
+	opts:  []scannerOption{withKeyValueDelimiter(':')},
+	sopts: scannerOptions{fd: ',', kvd: ':'},
+}, {
+	desc:  "scanner with custom fields and key-value delimiters",
+	opts:  []scannerOption{withFieldsDelimiter(';'), withKeyValueDelimiter(':')},
+	sopts: scannerOptions{fd: ';', kvd: ':'},
+}}
+
 func TestScannerOptions(t *testing.T) {
-	t.Run("scanner with default settings", func(t *testing.T) {
-		s := newScanner(nil)
-		if s.opts.fd != defaultFieldsDelimiter {
-			t.Errorf("newScanner() invalid fields delimiter:\ngot %c\nwant %c", s.opts.fd, defaultFieldsDelimiter)
-		}
-		if s.opts.kvd != defaultKeyValueDelimiter {
-			t.Errorf("newScanner() invalid key-value delimiter:\ngot %c\nwant %c", s.opts.kvd, defaultKeyValueDelimiter)
-		}
-	})
-
-	t.Run("scanner with custom fields delimiter", func(t *testing.T) {
-		s := newScanner(nil, withFieldsDelimiter(';'))
-		if s.opts.fd != ';' {
-			t.Errorf("newScanner() invalid fields delimiter:\ngot %c\nwant ;", s.opts.fd)
-		}
-		if s.opts.kvd != defaultKeyValueDelimiter {
-			t.Errorf("newScanner() invalid key-value delimiter:\ngot %c\nwant %c", s.opts.kvd, defaultKeyValueDelimiter)
-		}
-	})
-
-	t.Run("scanner with custom key-value delimiter", func(t *testing.T) {
-		s := newScanner(nil, withKeyValueDelimiter(':'))
-		if s.opts.fd != defaultFieldsDelimiter {
-			t.Errorf("newScanner() invalid fields delimiter:\ngot %c\nwant ;", s.opts.fd)
-		}
-		if s.opts.kvd != ':' {
-			t.Errorf("newScanner() invalid key-value delimiter:\ngot %c\nwant :", s.opts.kvd)
-		}
-	})
-
-	// t.Run("scanner with custom fields and key-value delimiters", func(t *testing.T) {
-	// 	s := newScanner(nil, withFieldsDelimiter(';'), withKeyValueDelimiter(':'))
-	// 	if s.fd != ';' {
-	// 		t.Errorf("newScanner() invalid fields delimiter:\ngot %c\nwant ;", s.fd)
-	// 	}
-	// 	if s.kvd != ':' {
-	// 		t.Errorf("newScanner() invalid key-value delimiter:\ngot %c\nwant :", s.kvd)
-	// 	}
-	// })
+	for _, tC := range scannerOptTests {
+		t.Run(tC.desc, func(t *testing.T) {
+			s := newScanner(nil, tC.opts...)
+			if !reflect.DeepEqual(s.opts, tC.sopts) {
+				t.Errorf("newScanner() invalid scanner options:\ngot %v\nwant %v", s.opts, tC.sopts)
+			}
+		})
+	}
 
 	// t.Run("scanner does not allow equal delimiters", func(t *testing.T) {
 	// 	s := newScanner(nil, withFieldsDelimiter(';'), withKeyValueDelimiter(';'))

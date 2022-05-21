@@ -25,11 +25,6 @@ const (
 )
 
 const (
-	defaultFieldsDelimiter   = ','
-	defaultKeyValueDelimiter = '='
-)
-
-const (
 	scanReady = iota
 	scanTuple
 	scanDone
@@ -50,8 +45,7 @@ type scanner struct {
 	opts  scannerOptions
 }
 
-// TODO(feat): add options
-func newScanner(r io.Reader, opts ...scannerOpt) *scanner {
+func newScanner(r io.Reader, opts ...scannerOption) *scanner {
 	sopts := defaultScannerOptions
 	for _, opt := range opts {
 		opt(&sopts)
@@ -126,12 +120,12 @@ func splitFunc(dlm rune) func(rune) bool {
 	return func(r rune) bool { return r == dlm }
 }
 
-type scannerOpt func(*scannerOptions)
+type scannerOption func(*scannerOptions)
 
-func withFieldsDelimiter(d rune) scannerOpt {
+func withFieldsDelimiter(d rune) scannerOption {
 	return func(so *scannerOptions) { so.fd = d }
 }
 
-func withKeyValueDelimiter(d rune) scannerOpt {
+func withKeyValueDelimiter(d rune) scannerOption {
 	return func(so *scannerOptions) { so.kvd = d }
 }
