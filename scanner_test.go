@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 type scanTest struct {
@@ -48,10 +49,13 @@ var scanTests = []scanTest{{
 func TestNext(t *testing.T) {
 	for tI, tC := range scanTests {
 		t.Run(tC.desc, func(t *testing.T) {
-			s := newScanner(strings.NewReader(tC.in))
+			s, err := newScanner(strings.NewReader(tC.in))
+			if err != nil {
+				t.Fatalf("#%d: unexpected newScanner() error: %v", tI, err)
+			}
+
 			var out [][][]string
 			var tuple [][]string
-			var err error
 			// while has next
 			for s.next() {
 				tuple, err = s.tuple()
@@ -83,7 +87,11 @@ func TestNext(t *testing.T) {
 }
 
 func TestNextAfterDone(t *testing.T) {
-	s := newScanner(strings.NewReader("fname=John"))
+	s, err := newScanner(strings.NewReader("fname=John"))
+	if err != nil {
+		t.Fatalf("unexpected newScanner() error: %v", err)
+	}
+
 	if s.nextTimes(2) {
 		t.Error("scan nextTimes(2):\ngot  true\nwant false")
 	}
@@ -97,7 +105,11 @@ func TestNextAfterDone(t *testing.T) {
 }
 
 func TestDoubleNext(t *testing.T) {
-	s := newScanner(strings.NewReader("fname=John fname=Bob"))
+	s, err := newScanner(strings.NewReader("fname=John fname=Bob"))
+	if err != nil {
+		t.Fatalf("unexpected newScanner() error: %v", err)
+	}
+
 	s.nextTimes(2)
 
 	// Tuple should return the latest data
@@ -149,22 +161,48 @@ var scannerOptTests = []scannerOptTest{{
 	desc:  "scanner with custom fields and key-value delimiters",
 	opts:  []scannerOption{withFieldsDelimiter(';'), withKeyValueDelimiter(':')},
 	sopts: scannerOptions{fd: ';', kvd: ':'},
+}, {
+	desc: "scanner with the same delimiter is not valid",
+	opts: []scannerOption{withFieldsDelimiter(';'), withKeyValueDelimiter(';')},
+	err:  errors.New("tuples: invalid delimiters: fields and key-value delimiters are equal"),
+}, {
+	desc: "scanner with invalid fields delimiter",
+	opts: []scannerOption{withFieldsDelimiter(utf8.RuneError)},
+	err:  errors.New("tuples: invalid delimiters: invalid fields delimiter"),
+}, {
+	desc: "scanner with invalid key-value delimiter",
+	opts: []scannerOption{withKeyValueDelimiter(utf8.RuneError)},
+	err:  errors.New("tuples: invalid delimiters: invalid key-value delimiter"),
 }}
 
 func TestScannerOptions(t *testing.T) {
-	for _, tC := range scannerOptTests {
+	for tI, tC := range scannerOptTests {
 		t.Run(tC.desc, func(t *testing.T) {
-			s := newScanner(nil, tC.opts...)
-			if !reflect.DeepEqual(s.opts, tC.sopts) {
-				t.Errorf("newScanner() invalid scanner options:\ngot %v\nwant %v", s.opts, tC.sopts)
+			s, err := newScanner(nil, tC.opts...)
+			if tC.err != nil {
+				if err == nil || (err.Error() != tC.err.Error()) {
+					t.Errorf("#%d: newScanner() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
+				}
+				var e *InvalidScannerOptionError
+				if !errors.As(err, &e) {
+					t.Errorf("#%d: newScanner() error is not a InvalidScannerOptionError", tI)
+				}
+				if errors.Unwrap(e) == nil {
+					t.Errorf("#%d: newScanner() error should wrap original error", tI)
+				}
+				if s != nil {
+					t.Errorf("#%d: newScanner() output:\ngot  %v\nwant nil", tI, s)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("#%d: unexpected newScanner() error: %v", tI, err)
+				}
+				if !reflect.DeepEqual(s.opts, tC.sopts) {
+					t.Errorf("#%d: newScanner() invalid scanner options:\ngot %v\nwant %v", tI, s.opts, tC.sopts)
+				}
 			}
 		})
 	}
-
-	// t.Run("scanner does not allow equal delimiters", func(t *testing.T) {
-	// 	s := newScanner(nil, withFieldsDelimiter(';'), withKeyValueDelimiter(';'))
-	// 	// should return error
-	// })
 
 	// t.Run("scanner does not allow invalid UTF symbols ad delimiter", func(t *testing.T) {
 	// 	s := newScanner(nil, withFieldsDelimiter('invalid utf symbol'))

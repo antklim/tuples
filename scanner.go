@@ -9,18 +9,30 @@ import (
 	"unicode/utf8"
 )
 
+var (
+	errEqualDelimiters          = errors.New("fields and key-value delimiters are equal")
+	errInvalidFieldsDelimiter   = errors.New("invalid fields delimiter")
+	errInvalidKeyValueDelimiter = errors.New("invalid key-value delimiter")
+)
+
 // ScannerError describes an error that occurred while scanning a tuple.
 type ScannerError struct {
 	error
 }
 
-// type InvalidScannerOptionError interface {
-// 	error
-// 	InvalidScannerOption() string
-// }
+// InvalidScannerOptionError describes an error that occurred while initializing
+// scanner with invalid options.
+type InvalidScannerOptionError struct {
+	err error
+}
 
-// type invalidScannerOptionError struct {
-// }
+func (e *InvalidScannerOptionError) Error() string {
+	return fmt.Sprintf("tuples: invalid delimiters: %s", e.err)
+}
+
+func (e *InvalidScannerOptionError) Unwrap() error {
+	return e.err
+}
 
 const (
 	idxKey = iota
@@ -40,13 +52,13 @@ type scannerOptions struct {
 
 func (so *scannerOptions) validate() error {
 	if so.fd == so.kvd {
-		return errors.New("invalid delimiter")
+		return errEqualDelimiters
 	}
 	if !validDelim(so.fd) {
-		return errors.New("invalid delimiter")
+		return errInvalidFieldsDelimiter
 	}
 	if !validDelim(so.kvd) {
-		return errors.New("invalid delimiter")
+		return errInvalidKeyValueDelimiter
 	}
 	return nil
 }
@@ -65,10 +77,14 @@ type scanner struct {
 	opts  scannerOptions
 }
 
-func newScanner(r io.Reader, opts ...scannerOption) *scanner {
+func newScanner(r io.Reader, opts ...scannerOption) (*scanner, error) {
 	sopts := defaultScannerOptions
 	for _, opt := range opts {
 		opt(&sopts)
+	}
+
+	if err := sopts.validate(); err != nil {
+		return nil, &InvalidScannerOptionError{err}
 	}
 
 	bufscan := bufio.NewScanner(r)
@@ -78,7 +94,7 @@ func newScanner(r io.Reader, opts ...scannerOption) *scanner {
 		opts: sopts,
 	}
 
-	return s
+	return s, nil
 }
 
 // next moves the scanner along the tuples values. It returns false if scanning

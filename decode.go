@@ -3,18 +3,22 @@ package tuples
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"reflect"
 	"strconv"
 )
 
-// TODO(chore): update error types to interfaces
+// TODO(chore): consider updating error types to interfaces
+// TODO(chore): add test for init scanner failure
 
 // Unmarshal parses the tuples-encoded data and stores the result in the value
 // pointed to by v.
 // If v is nil or not a pointer, Unmarshal returns an InvalidUnmarshalError.
 func Unmarshal(data []byte, v any) error {
 	var d decodeState
-	d.init(data)
+	if err := d.init(data); err != nil {
+		return err
+	}
 	return d.unmarshal(v)
 }
 
@@ -67,9 +71,21 @@ type decodeState struct {
 	s    *scanner
 }
 
-func (d *decodeState) init(data []byte) {
+func (d *decodeState) init(data []byte) error {
 	d.data = data
-	d.s = newScanner(bytes.NewReader(data))
+	if err := d.initScanner(bytes.NewReader(data)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *decodeState) initScanner(r io.Reader) error {
+	s, err := newScanner(r)
+	if err != nil {
+		return err
+	}
+	d.s = s
+	return nil
 }
 
 func (d *decodeState) unmarshal(v any) error {
