@@ -35,15 +35,15 @@ var scanTests = []scanTest{{
 }, {
 	desc: "Invalid field #1",
 	in:   "fname=John,lname=Doe,dob=2000-01-01 name,lname=Smith,dob=2010-10-10",
-	err:  errors.New("tuples: tuple #2 invalid field #1"),
+	err:  errors.New("tuples: scan failed: tuple #2 invalid field #1"),
 }, {
 	desc: "Invalid field #2",
 	in:   "fname=John,lname=Doe,dob=2000-01-01 name=,lname=Smith,dob=2010-10-10",
-	err:  errors.New("tuples: tuple #2 invalid field #1"),
+	err:  errors.New("tuples: scan failed: tuple #2 invalid field #1"),
 }, {
 	desc: "Invalid field #3",
 	in:   "fname=John,lname=Doe,dob=2000-01-01 =Bob,lname=Smith,dob=2010-10-10",
-	err:  errors.New("tuples: tuple #2 invalid field #1"),
+	err:  errors.New("tuples: scan failed: tuple #2 invalid field #1"),
 }}
 
 func TestNext(t *testing.T) {
@@ -68,9 +68,12 @@ func TestNext(t *testing.T) {
 				if err == nil || (err.Error() != tC.err.Error()) {
 					t.Errorf("#%d: scan next() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
 				}
-				var e ScannerError
+				var e *ScannerError
 				if !errors.As(err, &e) {
 					t.Errorf("#%d: scan next() error is not a ScanError", tI)
+				}
+				if errors.Unwrap(e) == nil {
+					t.Errorf("#%d: scan next() error should wrap original error", tI)
 				}
 			} else {
 				for i, tout := range tC.out {

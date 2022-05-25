@@ -191,14 +191,14 @@ var unmarshalTests = []UnmarshalTest{
 	{
 		in:  "a=a,b",
 		ptr: new([]T),
-		err: errors.New("tuples: tuple #1 invalid field #2"),
+		err: errors.New("tuples: scan failed: tuple #1 invalid field #2"),
 	},
 
 	// invalid tuple expression and unmarshal to interface
 	{
 		in:  "name=John,lname=Doe,age=17,1",
 		ptr: new(any),
-		err: errors.New("tuples: tuple #1 invalid field #4"),
+		err: errors.New("tuples: scan failed: tuple #1 invalid field #4"),
 	},
 }
 

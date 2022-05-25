@@ -17,7 +17,15 @@ var (
 
 // ScannerError describes an error that occurred while scanning a tuple.
 type ScannerError struct {
-	error
+	err error
+}
+
+func (e *ScannerError) Error() string {
+	return fmt.Sprintf("tuples: scan failed: %s", e.err)
+}
+
+func (e *ScannerError) Unwrap() error {
+	return e.err
 }
 
 // InvalidScannerOptionError describes an error that occurred while initializing
@@ -123,7 +131,7 @@ func (s *scanner) next() bool {
 	if !s.s.Scan() {
 		s.state = scanDone
 		if err := s.s.Err(); err != nil {
-			s.err = ScannerError{err}
+			s.err = &ScannerError{err}
 		}
 	}
 	s.pos++
@@ -144,7 +152,7 @@ func (s *scanner) tuple() ([][]string, error) {
 		// It splits "name=John" into ["name", "John"].
 		kv := strings.FieldsFunc(f, splitFunc(s.opts.kvd))
 		if len(kv) != 2 { // nolint: gomnd
-			s.err = ScannerError{fmt.Errorf("tuples: tuple #%d invalid field #%d", s.pos, i+1)}
+			s.err = &ScannerError{fmt.Errorf("tuple #%d invalid field #%d", s.pos, i+1)}
 			return nil, s.err
 		}
 		tuple = append(tuple, []string{kv[idxKey], kv[idxVal]})
