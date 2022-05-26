@@ -76,68 +76,87 @@ func TestNext(t *testing.T) {
 					t.Errorf("#%d: scan next() error should wrap original error", tI)
 				}
 			} else {
-				for i, tout := range tC.out {
-					if !reflect.DeepEqual(out[i], tout) {
-						t.Errorf("#%d: scan next() output #%d:\ngot  %v\nwant %v", tI, i, out[i], tout)
-					}
+				if err != nil {
+					t.Errorf("#%d: unexpected scan next() error: %v", tI, err)
 				}
 				if len(out) != len(tC.out) {
 					t.Errorf("#%d: scan next() output length mismatch:\ngot  %d\nwant %d", tI, len(out), len(tC.out))
+				} else {
+					for i, tout := range tC.out {
+						if !reflect.DeepEqual(out[i], tout) {
+							t.Errorf("#%d: scan next() output #%d:\ngot  %v\nwant %v", tI, i, out[i], tout)
+						}
+					}
 				}
 			}
 		})
 	}
 }
 
-func TestNextAfterDone(t *testing.T) {
-	s, err := newScanner(strings.NewReader("fname=John"))
-	if err != nil {
-		t.Fatalf("unexpected newScanner() error: %v", err)
-	}
-
-	if s.nextTimes(2) {
-		t.Error("scan nextTimes(2):\ngot  true\nwant false")
-	}
-	out, err := s.tuple()
-	if err != nil {
-		t.Errorf("unexpected scan tuple() error: %v", err)
-	}
-	if out != nil {
-		t.Errorf("scan tuple() output:\ngot  %v\nwant nil", out)
-	}
+type nextTest struct {
+	desc  string
+	in    string
+	out   [][]string
+	times int
+	done  bool
 }
 
-func TestDoubleNext(t *testing.T) {
-	s, err := newScanner(strings.NewReader("fname=John fname=Bob"))
-	if err != nil {
-		t.Fatalf("unexpected newScanner() error: %v", err)
-	}
-
-	s.nextTimes(2)
-
-	// Tuple should return the latest data
-	want := [][]string{{"fname", "Bob"}}
-	out, err := s.tuple()
-	if err != nil {
-		t.Errorf("unexpected scan tuple() error: %v", err)
-	}
-	if !reflect.DeepEqual(out, want) {
-		t.Errorf("scan tuple() output:\ngot  %v\nwant %v", out, want)
-	}
-}
+var nextTests = []nextTest{{
+	desc:  "Scans first",
+	in:    "fname=John fname=Bob fname=Smith",
+	out:   [][]string{{"fname", "John"}},
+	times: 1,
+}, {
+	desc:  "Scans in provided position",
+	in:    "fname=John fname=Bob fname=Smith",
+	out:   [][]string{{"fname", "Bob"}},
+	times: 2,
+}, {
+	desc:  "Scans last",
+	in:    "fname=John fname=Bob fname=Smith",
+	out:   [][]string{{"fname", "Smith"}},
+	times: 3,
+}, {
+	desc:  "Safely scans till the end and stops",
+	in:    "fname=John fname=Bob fname=Smith",
+	times: 5,
+	done:  true,
+}, {
+	desc:  "Ignores zero times",
+	in:    "fname=John fname=Bob fname=Smith",
+	times: 0,
+}, {
+	desc:  "Ignores negative times",
+	in:    "fname=John fname=Bob fname=Smith",
+	times: -10,
+}}
 
 func TestNextTimes(t *testing.T) {
-	// TODO(chore): move TestNextAfterDone and TestDoubleNext into here
-	testCases := []struct {
-		desc string
-	}{
-		{
-			desc: "",
-		},
-	}
-	for _, tC := range testCases {
+	for tI, tC := range nextTests {
 		t.Run(tC.desc, func(t *testing.T) {
+			s, err := newScanner(strings.NewReader(tC.in))
+			if err != nil {
+				t.Fatalf("#%d: unexpected newScanner() error: %v", tI, err)
+			}
 
+			hasNext := s.nextTimes(tC.times)
+			out, err := s.tuple()
+
+			if err != nil {
+				t.Errorf("#%d: unexpected scan nextTimes() error: %v", tI, err)
+			}
+			if len(out) != len(tC.out) {
+				t.Errorf("#%d: scan nextTimes() output length mismatch:\ngot  %d\nwant %d", tI, len(out), len(tC.out))
+			} else {
+				for i, tout := range tC.out {
+					if !reflect.DeepEqual(out[i], tout) {
+						t.Errorf("#%d: scan nextTimes() output #%d:\ngot  %v\nwant %v", tI, i, out[i], tout)
+					}
+				}
+			}
+			if hasNext != !tC.done {
+				t.Errorf("#%d: scan nextTimes() hasNext mismatch:\ngot  %t\nwant %t", tI, hasNext, !tC.done)
+			}
 		})
 	}
 }
@@ -206,9 +225,4 @@ func TestScannerOptions(t *testing.T) {
 			}
 		})
 	}
-
-	// t.Run("scanner does not allow invalid UTF symbols ad delimiter", func(t *testing.T) {
-	// 	s := newScanner(nil, withFieldsDelimiter('invalid utf symbol'))
-	// 	// should return error
-	// })
 }

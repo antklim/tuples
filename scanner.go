@@ -107,7 +107,12 @@ func newScanner(r io.Reader, opts ...scannerOption) (*scanner, error) {
 
 // next moves the scanner along the tuples values. It returns false if scanning
 // finished or error occurred. Call tupple() to get scanned values.
-// For example:
+// next returns false only when the scanner is finished. It means that even
+// when the last tuple scanned the next returns true and should be called once
+// more to make sure that there is nothing left. next does not scan tuple
+// proactively.
+//
+// Example of scanner use:
 //
 //	in := strings.NewReader("name=Rob,lname=Doe name=Bob,lname=Smith")
 //	s := newScanner(in)
@@ -139,7 +144,7 @@ func (s *scanner) next() bool {
 }
 
 func (s *scanner) nextTimes(n int) bool {
-	for ; s.next() && n > 1; n-- {
+	for ; n >= 1 && s.next(); n-- {
 	}
 	return s.state != scanDone
 }
