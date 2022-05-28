@@ -95,6 +95,10 @@ var readTests = []readTest{{
 	out:     [][]string{{"John", "Doe", "2000-01-01"}, {"Bob", "Smith", "2010-10-10"}},
 	fDelim:  ';',
 	kvDelim: ':',
+}, {
+	desc: "Fails to read tuple",
+	in:   "fname,lname=Doe",
+	err:  errors.New("tuples: scan failed: tuple #1 invalid field #1"),
 }}
 
 func newReader(rt readTest) (*tuples.Reader, error) {
@@ -171,9 +175,6 @@ func TestReadAll(t *testing.T) {
 		})
 	}
 }
-
-// TODO (chore): read error test
-// TODO (chore): readAll read error test
 
 func TestReadString(t *testing.T) {
 	for tI, tC := range readTests {
