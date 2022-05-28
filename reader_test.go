@@ -95,6 +95,10 @@ var readTests = []readTest{{
 	out:     [][]string{{"John", "Doe", "2000-01-01"}, {"Bob", "Smith", "2010-10-10"}},
 	fDelim:  ';',
 	kvDelim: ':',
+}, {
+	desc: "Fails to read tuple",
+	in:   "fname,lname=Doe",
+	err:  errors.New("tuples: scan failed: tuple #1 invalid field #1"),
 }}
 
 func newReader(rt readTest) (*tuples.Reader, error) {
@@ -132,6 +136,13 @@ func TestRead(t *testing.T) {
 
 				if err != nil && err.Error() != wantErr.Error() {
 					t.Fatalf("#%d: Read() error at record %d:\ngot  %v\nwant %v", tI, recNum, err, wantErr)
+				}
+				if err != nil && err != io.EOF {
+					// all non EOF errors expected to be a ScannerError
+					var e *tuples.ScannerError
+					if !errors.As(err, &e) {
+						t.Errorf("#%d: Read() error is not a ScannerError", tI)
+					}
 				}
 				if err != nil {
 					break
@@ -172,18 +183,17 @@ func TestReadAll(t *testing.T) {
 	}
 }
 
-// TODO (chore): read string error test
-// TODO (chore): read error test
-// TODO (chore): readAll read error test
-
 func TestReadString(t *testing.T) {
 	for tI, tC := range readTests {
-		if tC.fDelim != 0 || tC.kvDelim != 0 {
-			// read string creates a reader with default delimiters
-			// tests with custom delimters fail
-			continue
+		var opts []tuples.ReaderOption
+		if tC.fDelim != 0 {
+			opts = append(opts, tuples.WithFieldsDelimiter(tC.fDelim))
 		}
-		out, err := tuples.ReadString(tC.in)
+		if tC.kvDelim != 0 {
+			opts = append(opts, tuples.WithKeyValueDelimiter(tC.kvDelim))
+		}
+
+		out, err := tuples.ReadString(tC.in, opts...)
 		if tC.err != nil {
 			if err == nil || (err.Error() != tC.err.Error()) {
 				t.Fatalf("#%d: ReadString() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
@@ -199,5 +209,31 @@ func TestReadString(t *testing.T) {
 				t.Errorf("#%d: ReadString() output:\ngot  %v\nwant %v", tI, out, tC.out)
 			}
 		}
+	}
+}
+
+func TestReadStringFails(t *testing.T) {
+	for tI, tC := range newReaderTests {
+		t.Run(tC.desc, func(t *testing.T) {
+			var opts []tuples.ReaderOption
+			if tC.fDelim != 0 {
+				opts = append(opts, tuples.WithFieldsDelimiter(tC.fDelim))
+			}
+			if tC.kvDelim != 0 {
+				opts = append(opts, tuples.WithKeyValueDelimiter(tC.kvDelim))
+			}
+
+			out, err := tuples.ReadString("", opts...)
+			if err == nil || (err.Error() != tC.err.Error()) {
+				t.Fatalf("#%d: ReadString error mismatch:\ngot  %v,\nwant %v", tI, err, tC.err)
+			}
+			var e *tuples.InvalidScannerOptionError
+			if !errors.As(err, &e) {
+				t.Errorf("#%d: ReadString() error is not a InvalidScannerOptionError", tI)
+			}
+			if out != nil {
+				t.Errorf("#%d: ReadString() output:\ngot  %v\nwant nil", tI, out)
+			}
+		})
 	}
 }

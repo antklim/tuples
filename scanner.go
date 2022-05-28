@@ -112,8 +112,7 @@ func newScanner(r io.Reader, opts ...scannerOption) (*scanner, error) {
 // more to make sure that there is nothing left. next does not scan tuple
 // proactively.
 //
-// Example of scanner use:
-//
+// Usage:
 //	in := strings.NewReader("name=Rob,lname=Doe name=Bob,lname=Smith")
 //	s := newScanner(in)
 //	for s.next() {
