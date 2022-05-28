@@ -1,36 +1,39 @@
 package tuples
 
 import (
-	"bufio"
-	"errors"
 	"io"
 	"strings"
 )
 
-// TODO: move to scanner
-var errInvalidDelim = errors.New("tuples: invalid fields or key values delimiter")
+// TODO(chore): add comments
 
+// Reader ...
 type Reader struct {
-	FieldsDelimiter rune
-	KeyValDelimiter rune
-	s               *bufio.Scanner // TODO: use scanner
+	s *scanner
 }
 
-func NewReader(r io.Reader) *Reader {
-	s := bufio.NewScanner(r)
-	s.Split(bufio.ScanWords)
-
-	return &Reader{
-		FieldsDelimiter: ',',
-		KeyValDelimiter: '=',
-		s:               s,
+// NewReader ...
+func NewReader(r io.Reader, opts ...ReaderOption) (*Reader, error) {
+	ropts := defaultReaderOptions
+	for _, opt := range opts {
+		opt(&ropts)
 	}
+
+	s, err := newScanner(r,
+		withFieldsDelimiter(ropts.fieldsDelimiter),
+		withKeyValueDelimiter(ropts.keyValDelimiter))
+	if err != nil {
+		return nil, err
+	}
+	return &Reader{s}, nil
 }
 
+// Read ...
 func (r *Reader) Read() (tuple []string, err error) {
 	return r.readTuple()
 }
 
+// ReadAll ...
 func (r *Reader) ReadAll() (tuples [][]string, err error) {
 	for {
 		tuple, err := r.readTuple()
@@ -45,33 +48,47 @@ func (r *Reader) ReadAll() (tuples [][]string, err error) {
 }
 
 func (r *Reader) readTuple() ([]string, error) {
-	if r.FieldsDelimiter == r.KeyValDelimiter ||
-		!validDelim(r.FieldsDelimiter) ||
-		!validDelim(r.KeyValDelimiter) {
-		return nil, errInvalidDelim
+	if r.s.next() {
+		tuple, err := r.s.tuple()
+		if err != nil {
+			return nil, err
+		}
+		var fieldValues []string
+		for _, field := range tuple {
+			fieldValues = append(fieldValues, field[idxVal])
+		}
+		return fieldValues, nil
 	}
 
-	if r.s.Scan() {
-		tuple := r.readFields(r.s.Text())
-		return tuple, nil
+	err := r.s.err
+	if err == nil {
+		err = io.EOF
 	}
-	if err := r.s.Err(); err != nil {
+	return nil, err
+}
+
+// ReadString ...
+func ReadString(s string, opts ...ReaderOption) ([][]string, error) {
+	r, err := NewReader(strings.NewReader(s), opts...)
+	if err != nil {
 		return nil, err
 	}
-	return nil, io.EOF
-}
-
-func (r *Reader) readFields(s string) []string {
-	var fieldValues []string
-	fields := strings.FieldsFunc(s, func(c rune) bool { return c == r.FieldsDelimiter })
-	for _, f := range fields {
-		kv := strings.FieldsFunc(f, func(c rune) bool { return c == r.KeyValDelimiter })
-		fieldValues = append(fieldValues, kv[1])
-	}
-	return fieldValues
-}
-
-func ReadString(s string) ([][]string, error) {
-	r := NewReader(strings.NewReader(s))
 	return r.ReadAll()
 }
+
+type readerOptions struct {
+	fieldsDelimiter rune
+	keyValDelimiter rune
+}
+
+type ReaderOption func(*readerOptions)
+
+func WithFieldsDelimiter(d rune) ReaderOption {
+	return func(ro *readerOptions) { ro.fieldsDelimiter = d }
+}
+
+func WithKeyValueDelimiter(d rune) ReaderOption {
+	return func(ro *readerOptions) { ro.keyValDelimiter = d }
+}
+
+var defaultReaderOptions = readerOptions{fieldsDelimiter: ',', keyValDelimiter: '='}
