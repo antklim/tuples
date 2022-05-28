@@ -8,9 +8,6 @@ import (
 	"strconv"
 )
 
-// TODO(chore): consider updating error types to interfaces
-// TODO(chore): add test for init scanner failure
-
 // Unmarshal parses the tuples-encoded data and stores the result in the value
 // pointed to by v.
 // If v is nil or not a pointer, Unmarshal returns an InvalidUnmarshalError.

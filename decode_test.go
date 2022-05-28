@@ -20,10 +20,10 @@ var invalidUnmarshalTests = []struct {
 
 func TestInvalidUnmarshal(t *testing.T) {
 	in := []byte("fname=John")
-	for _, tC := range invalidUnmarshalTests {
+	for tI, tC := range invalidUnmarshalTests {
 		err := tuples.Unmarshal(in, tC.v)
 		if err == nil || (err.Error() != tC.err) {
-			t.Errorf("Unmarshal() error mismatch:\ngot %v\nwant %s", err, tC.err)
+			t.Errorf("#%d: Unmarshal() error mismatch:\ngot  %v\nwant %s", tI, err, tC.err)
 		}
 	}
 }
