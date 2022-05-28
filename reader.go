@@ -68,8 +68,8 @@ func (r *Reader) readTuple() ([]string, error) {
 }
 
 // ReadString ...
-func ReadString(s string) ([][]string, error) {
-	r, err := NewReader(strings.NewReader(s))
+func ReadString(s string, opts ...ReaderOption) ([][]string, error) {
+	r, err := NewReader(strings.NewReader(s), opts...)
 	if err != nil {
 		return nil, err
 	}
