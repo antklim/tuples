@@ -12,12 +12,16 @@ type Reader struct {
 	s *scanner
 }
 
-// TODO(chore): add test for scanner init errors
-// TODO(chore): add reader options - field and key-value delimiters
-
 // NewReader ...
-func NewReader(r io.Reader) (*Reader, error) {
-	s, err := newScanner(r)
+func NewReader(r io.Reader, opts ...ReaderOption) (*Reader, error) {
+	ropts := defaultReaderOptions
+	for _, opt := range opts {
+		opt(&ropts)
+	}
+
+	s, err := newScanner(r,
+		withFieldsDelimiter(ropts.fieldsDelimiter),
+		withKeyValueDelimiter(ropts.keyValDelimiter))
 	if err != nil {
 		return nil, err
 	}
@@ -63,6 +67,7 @@ func (r *Reader) readTuple() ([]string, error) {
 	return nil, err
 }
 
+// ReadString ...
 func ReadString(s string) ([][]string, error) {
 	r, err := NewReader(strings.NewReader(s))
 	if err != nil {
@@ -70,3 +75,20 @@ func ReadString(s string) ([][]string, error) {
 	}
 	return r.ReadAll()
 }
+
+type readerOptions struct {
+	fieldsDelimiter rune
+	keyValDelimiter rune
+}
+
+type ReaderOption func(*readerOptions)
+
+func WithFieldsDelimiter(d rune) ReaderOption {
+	return func(ro *readerOptions) { ro.fieldsDelimiter = d }
+}
+
+func WithKeyValueDelimiter(d rune) ReaderOption {
+	return func(ro *readerOptions) { ro.keyValDelimiter = d }
+}
+
+var defaultReaderOptions = readerOptions{fieldsDelimiter: ',', keyValDelimiter: '='}

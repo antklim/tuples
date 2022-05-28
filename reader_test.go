@@ -1,13 +1,63 @@
 package tuples_test
 
 import (
+	"errors"
 	"io"
 	"reflect"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/antklim/tuples"
 )
+
+type newReaderTest struct {
+	desc    string
+	fDelim  rune
+	kvDelim rune
+	err     error
+}
+
+var newReaderTests = []newReaderTest{{
+	desc:    "Fails to create a reader when delimiters are the same",
+	fDelim:  ':',
+	kvDelim: ':',
+	err:     errors.New("tuples: invalid delimiters: fields and key-value delimiters are equal"),
+}, {
+	desc:   "Fails to create a reader when fields delimiter is not valid",
+	fDelim: utf8.RuneError,
+	err:    errors.New("tuples: invalid delimiters: invalid fields delimiter"),
+}, {
+	desc:    "Fails to create a reader when key-value delimiter is not valid",
+	kvDelim: utf8.RuneError,
+	err:     errors.New("tuples: invalid delimiters: invalid key-value delimiter"),
+}}
+
+func TestNewReader(t *testing.T) {
+	for tI, tC := range newReaderTests {
+		t.Run(tC.desc, func(t *testing.T) {
+			var opts []tuples.ReaderOption
+			if tC.fDelim != 0 {
+				opts = append(opts, tuples.WithFieldsDelimiter(tC.fDelim))
+			}
+			if tC.kvDelim != 0 {
+				opts = append(opts, tuples.WithKeyValueDelimiter(tC.kvDelim))
+			}
+
+			r, err := tuples.NewReader(strings.NewReader(""), opts...)
+			if err == nil || (err.Error() != tC.err.Error()) {
+				t.Fatalf("#%d: NewReader error mismatch:\ngot  %v,\nwant %v", tI, err, tC.err)
+			}
+			var e *tuples.InvalidScannerOptionError
+			if !errors.As(err, &e) {
+				t.Errorf("#%d: NewReader() error is not a InvalidScannerOptionError", tI)
+			}
+			if r != nil {
+				t.Errorf("#%d: NewReader() output:\ngot  %v\nwant nil", tI, r)
+			}
+		})
+	}
+}
 
 type readTest struct {
 	desc string
@@ -18,8 +68,6 @@ type readTest struct {
 	fDelim  rune
 	kvDelim rune
 }
-
-// var errInvalidDelim = errors.New("tuples: invalid fields or key values delimiter")
 
 var readTests = []readTest{{
 	desc: "Simple",
@@ -41,44 +89,27 @@ var readTests = []readTest{{
 	desc: "TabDelimited",
 	in: "fname=John,lname=Doe,dob=2000-01-01	fname=Bob,lname=Smith,dob=2010-10-10\n",
 	out: [][]string{{"John", "Doe", "2000-01-01"}, {"Bob", "Smith", "2010-10-10"}},
-	// }, {
-	// 	desc:    "CustomDelimiters",
-	// 	in:      "fname:John;lname:Doe;dob:2000-01-01 fname:Bob;lname:Smith;dob:2010-10-10",
-	// 	out:     [][]string{{"John", "Doe", "2000-01-01"}, {"Bob", "Smith", "2010-10-10"}},
-	// 	fDelim:  ';',
-	// 	kvDelim: ':',
-	// }, {
-	// 	desc:    "BadDelimiters1",
-	// 	in:      "fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10",
-	// 	err:     errInvalidDelim,
-	// 	fDelim:  ':',
-	// 	kvDelim: ':',
-	// }, {
-	// 	desc:    "BadDelimiters2",
-	// 	in:      "fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10",
-	// 	err:     errInvalidDelim,
-	// 	fDelim:  utf8.RuneError,
-	// 	kvDelim: ':',
-	// }, {
-	// 	desc:    "BadDelimiters3",
-	// 	in:      "fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10",
-	// 	err:     errInvalidDelim,
-	// 	fDelim:  ':',
-	// 	kvDelim: utf8.RuneError,
+}, {
+	desc:    "CustomDelimiters",
+	in:      "fname:John;lname:Doe;dob:2000-01-01 fname:Bob;lname:Smith;dob:2010-10-10",
+	out:     [][]string{{"John", "Doe", "2000-01-01"}, {"Bob", "Smith", "2010-10-10"}},
+	fDelim:  ';',
+	kvDelim: ':',
 }}
 
 func newReader(rt readTest) (*tuples.Reader, error) {
-	r, err := tuples.NewReader(strings.NewReader(rt.in))
+	var opts []tuples.ReaderOption
+	if rt.fDelim != 0 {
+		opts = append(opts, tuples.WithFieldsDelimiter(rt.fDelim))
+	}
+	if rt.kvDelim != 0 {
+		opts = append(opts, tuples.WithKeyValueDelimiter(rt.kvDelim))
+	}
+
+	r, err := tuples.NewReader(strings.NewReader(rt.in), opts...)
 	if err != nil {
 		return nil, err
 	}
-	// TODO: use new reader options to set delimiters
-	// if rt.fDelim != 0 {
-	// 	r.FieldsDelimiter = rt.fDelim
-	// }
-	// if rt.kvDelim != 0 {
-	// 	r.KeyValDelimiter = rt.kvDelim
-	// }
 	return r, nil
 }
 
@@ -105,9 +136,8 @@ func TestRead(t *testing.T) {
 				if err != nil {
 					break
 				}
-				// TODO(chore): add len test
-				if got, want := rec, tC.out[recNum]; !reflect.DeepEqual(got, want) {
-					t.Errorf("Read vs ReadAll mismatch:\ngot  %v\nwant %v", got, want)
+				if !reflect.DeepEqual(rec, tC.out[recNum]) {
+					t.Errorf("#%d: Read vs ReadAll mismatch:\ngot  %v\nwant %v", tI, rec, tC.out[recNum])
 				}
 			}
 		})
@@ -128,19 +158,23 @@ func TestReadAll(t *testing.T) {
 					t.Fatalf("#%d: ReadAll() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
 				}
 				if out != nil {
-					t.Fatalf("#%d: ReadAll() output:\ngot  %v\nwant nil", tI, out)
+					t.Errorf("#%d: ReadAll() output:\ngot  %v\nwant nil", tI, out)
 				}
 			} else {
 				if err != nil {
 					t.Fatalf("#%d: unexpected ReadAll() error: %v", tI, err)
 				}
 				if !reflect.DeepEqual(out, tC.out) {
-					t.Fatalf("#%d: ReadAll() output:\ngot  %v\nwant %v", tI, out, tC.out)
+					t.Errorf("#%d: ReadAll() output:\ngot  %v\nwant %v", tI, out, tC.out)
 				}
 			}
 		})
 	}
 }
+
+// TODO (chore): read string error test
+// TODO (chore): read error test
+// TODO (chore): readAll read error test
 
 func TestReadString(t *testing.T) {
 	for tI, tC := range readTests {
@@ -155,14 +189,14 @@ func TestReadString(t *testing.T) {
 				t.Fatalf("#%d: ReadString() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
 			}
 			if out != nil {
-				t.Fatalf("#%d: ReadString() output:\ngot  %v\nwant nil", tI, out)
+				t.Errorf("#%d: ReadString() output:\ngot  %v\nwant nil", tI, out)
 			}
 		} else {
 			if err != nil {
 				t.Fatalf("#%d: unexpected ReadString() error: %v", tI, err)
 			}
 			if !reflect.DeepEqual(out, tC.out) {
-				t.Fatalf("#%d: ReadString() output:\ngot  %v\nwant %v", tI, out, tC.out)
+				t.Errorf("#%d: ReadString() output:\ngot  %v\nwant %v", tI, out, tC.out)
 			}
 		}
 	}
