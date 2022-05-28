@@ -137,6 +137,13 @@ func TestRead(t *testing.T) {
 				if err != nil && err.Error() != wantErr.Error() {
 					t.Fatalf("#%d: Read() error at record %d:\ngot  %v\nwant %v", tI, recNum, err, wantErr)
 				}
+				if err != nil && err != io.EOF {
+					// all non EOF errors expected to be a ScannerError
+					var e *tuples.ScannerError
+					if !errors.As(err, &e) {
+						t.Errorf("#%d: Read() error is not a ScannerError", tI)
+					}
+				}
 				if err != nil {
 					break
 				}
