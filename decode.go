@@ -181,11 +181,11 @@ func (d *decodeState) object(v reflect.Value) error {
 		return err
 	}
 	for _, fld := range flds {
-		for i := 0; i < v.Type().NumField(); i++ {
-			if tag := v.Type().Field(i).Tag.Get("tuples"); tag == fld[idxKey] {
-				if err := set(v.Field(i), fld[idxVal]); err != nil {
-					return err
-				}
+		tag, val := fld[idxKey], fld[idxVal]
+		sf := cachedTypeFields(v.Type())
+		if idx, ok := sf.fieldsByTag[tag]; ok {
+			if err := set(v.Field(idx), val); err != nil {
+				return err
 			}
 		}
 	}
