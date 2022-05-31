@@ -13,7 +13,7 @@ func TestCachedTypeFields(t *testing.T) {
 		Age         int `tuples:"age"`
 	}
 
-	expected := structFields{
+	expected := typFields{
 		fields: []field{
 			{name: "Name", typ: reflect.TypeOf(""), tag: "fname"},
 			{name: "Surname", typ: reflect.TypeOf(""), tag: "lname"},

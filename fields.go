@@ -11,16 +11,16 @@ type field struct {
 	tag  string
 }
 
-type structFields struct {
+type typFields struct {
 	fields      []field
 	fieldsByTag map[string]int
 }
 
-var fieldCache sync.Map // map[reflect.Type]structFields
+var fieldsCache sync.Map // map[reflect.Type]typFields
 
 // typeFields returns a list of fields that should be recognized for the given
 // type.
-func typeFields(t reflect.Type) structFields {
+func typeFields(t reflect.Type) typFields {
 	var fields []field
 
 	for i := 0; i < t.NumField(); i++ {
@@ -39,15 +39,15 @@ func typeFields(t reflect.Type) structFields {
 	for i, f := range fields {
 		fieldsByTag[f.tag] = i
 	}
-	return structFields{fields, fieldsByTag}
+	return typFields{fields, fieldsByTag}
 }
 
 // cachedTypeFields runs typeFields and stores the result in the cache.
-func cachedTypeFields(t reflect.Type) structFields {
-	if cache, ok := fieldCache.Load(t); ok {
-		return cache.(structFields)
+func cachedTypeFields(t reflect.Type) typFields {
+	if cache, ok := fieldsCache.Load(t); ok {
+		return cache.(typFields)
 	}
 
-	cache, _ := fieldCache.LoadOrStore(t, typeFields(t))
-	return cache.(structFields)
+	cache, _ := fieldsCache.LoadOrStore(t, typeFields(t))
+	return cache.(typFields)
 }
