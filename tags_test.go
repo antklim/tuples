@@ -15,14 +15,14 @@ func TestCachedTypeFields(t *testing.T) {
 
 	expected := structFields{
 		fields: []field{
-			{name: "Name", typ: reflect.TypeOf(""), tag: true},
-			{name: "Surname", typ: reflect.TypeOf(""), tag: true},
-			{name: "Age", typ: reflect.TypeOf(1), tag: true},
+			{name: "Name", typ: reflect.TypeOf(""), tag: "fname"},
+			{name: "Surname", typ: reflect.TypeOf(""), tag: "lname"},
+			{name: "Age", typ: reflect.TypeOf(1), tag: "age"},
 		},
-		namedIdx: map[string]int{
-			"Name":    0,
-			"Surname": 1,
-			"Age":     2,
+		fieldsByTag: map[string]int{
+			"fname": 0,
+			"lname": 1,
+			"age":   2,
 		},
 	}
 

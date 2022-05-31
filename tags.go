@@ -5,18 +5,15 @@ import (
 	"sync"
 )
 
-// TODO(feat): create fields cache
-// TODO(feat): use fields cache in scanner (https://cs.opensource.google/go/go/+/refs/tags/go1.18.1:src/encoding/json/encode.go;l=1410)
-
 type field struct {
 	name string
 	typ  reflect.Type
-	tag  bool
+	tag  string
 }
 
 type structFields struct {
-	fields   []field
-	namedIdx map[string]int
+	fields      []field
+	fieldsByTag map[string]int
 }
 
 var fieldCache sync.Map // map[reflect.Type]structFields
@@ -32,17 +29,17 @@ func typeFields(t reflect.Type) structFields {
 			f := field{
 				name: fld.Name,
 				typ:  fld.Type,
-				tag:  tag != "",
+				tag:  tag,
 			}
 			fields = append(fields, f)
 		}
 	}
 
-	nameIdx := make(map[string]int)
+	fieldsByTag := make(map[string]int)
 	for i, f := range fields {
-		nameIdx[f.name] = i
+		fieldsByTag[f.tag] = i
 	}
-	return structFields{fields, nameIdx}
+	return structFields{fields, fieldsByTag}
 }
 
 // cachedTypeFields runs typeFields and stores the result in the cache.
