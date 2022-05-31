@@ -15,9 +15,9 @@ func TestCachedTypeFields(t *testing.T) {
 
 	expected := typFields{
 		fields: []field{
-			{name: "Name", typ: reflect.TypeOf(""), tag: "fname"},
-			{name: "Surname", typ: reflect.TypeOf(""), tag: "lname"},
-			{name: "Age", typ: reflect.TypeOf(1), tag: "age"},
+			{name: "Name", tag: "fname"},
+			{name: "Surname", tag: "lname"},
+			{name: "Age", tag: "age"},
 		},
 		fieldsByTag: map[string]int{
 			"fname": 0,

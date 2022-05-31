@@ -7,7 +7,6 @@ import (
 
 type field struct {
 	name string
-	typ  reflect.Type
 	tag  string
 }
 
@@ -28,7 +27,6 @@ func typeFields(t reflect.Type) typFields {
 		if tag := fld.Tag.Get("tuples"); tag != "" {
 			f := field{
 				name: fld.Name,
-				typ:  fld.Type,
 				tag:  tag,
 			}
 			fields = append(fields, f)
