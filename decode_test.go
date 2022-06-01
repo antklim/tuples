@@ -63,7 +63,7 @@ type T2 struct {
 
 func (t2 T2) String() string { return t2.Name }
 
-type UnmarshalTest struct {
+type unmarshalTest struct {
 	in         string
 	ptr        any
 	out        any
@@ -71,7 +71,7 @@ type UnmarshalTest struct {
 	withUnwrap bool
 }
 
-var unmarshalTests = []UnmarshalTest{
+var unmarshalTests = []unmarshalTest{
 	{in: "", ptr: new([]T), out: []T{}},
 	{
 		in:  "name=John,lname=Doe,age=17",
