@@ -6,9 +6,13 @@ import "errors"
 //
 // Marshal supports:
 //	- struct with tags
+//	- pointer to a struct with tags
 //	- slice of structs with tags
+//	- pointer to slice of structs with tags
 //	- map
+//	- pointer to a map
 //	- slice of maps
+//	- pointer to a slice of maps
 //
 // In case of map, map key value used as tuple key. All map entries marshaled.
 //
