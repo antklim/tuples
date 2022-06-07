@@ -3,6 +3,8 @@ package tuples_test
 import (
 	"testing"
 	"time"
+
+	"github.com/antklim/tuples"
 )
 
 type T1 struct {
@@ -23,37 +25,54 @@ type T4 struct {
 	F3 int64 `tuples:"fld5"`
 }
 
-var in1 = T1{Foo: "hey", Bar: 25}
-var out1 = "foo=hey,baaar=25"
-
-var in2 = []T3{
-	{Name: "Bob", Age: 33, Dob: time.Now(), HasKids: false},
-	{Name: "Junior", Age: 43, Dob: time.Now(), HasKids: true},
+type marshalTest struct {
+	in  any
+	out string
+	err error
 }
-var out2 = "fname=Bob,age=33,with_kids=false fname=Junior,age=43,with_kids=true"
 
-var in3 = map[string]any{
-	"fname": "Smith",
-	"age":   23,
+var marshalTests = []marshalTest{
+	{in: T1{Foo: "hey", Bar: 25}, out: "foo=hey,baaar=25"},
+	{in: &T1{Foo: "hey", Bar: 25}, out: "foo=hey,baaar=25"},
+	{
+		in: []T3{
+			{Name: "Bob", Age: 33, Dob: time.Now(), HasKids: false},
+			{Name: "Junior", Age: 43, Dob: time.Now(), HasKids: true},
+		},
+		out: "fname=Bob,age=33,with_kids=false fname=Junior,age=43,with_kids=true",
+	},
+	{
+		in: &[]T3{
+			{Name: "Bob", Age: 33, Dob: time.Now(), HasKids: false},
+			{Name: "Junior", Age: 43, Dob: time.Now(), HasKids: true},
+		},
+		out: "fname=Bob,age=33,with_kids=false fname=Junior,age=43,with_kids=true",
+	},
+	{
+		in: map[string]any{
+			"fname": "Smith",
+			"age":   23,
+		},
+		out: "fname=Smith,age=23",
+	},
+	{
+		in: []any{
+			map[string]any{"fld1": int8(1), "fld2": uint64(9)},
+			T4{F1: "hehe", F2: 2, F3: int64(44)},
+		},
+		out: "fld1=1,fld2=9 fld4=hehe,fld5=44",
+	},
 }
-var out3 = "fname=Smith,age=23"
-
-var in4 = []map[string]any{
-	{"foo": "bar", "temp": uint(32), "Boool": true},
-	{"price": 15.5, "fee": float64(3.4), "tempo": "jazz"},
-}
-var out4 = "foo=bar,temp=32,Boool=true price=15.5,fee=3.4,tempo=jazz"
-
-var in5 = []any{
-	map[string]any{"fld1": int8(1), "fld2": uint64(9)},
-	T4{F1: "hehe", F2: 2, F3: int64(44)},
-}
-var out5 = "fld1=1,fld2=9 fld4=hehe,fld5=44"
 
 func TestMarshal(t *testing.T) {
-	// for _, tC := range testCases {
-	// 	t.Run(tC.desc, func(t *testing.T) {
-
-	// 	})
-	// }
+	for tI, tC := range marshalTests {
+		got, err := tuples.Marshal(tC.in)
+		if !eqErrors(tC.err, err) {
+			t.Errorf("#%d: unexpected Marshal() error: \ngot  %v\nwant %v", tI, err, tC.err)
+			continue
+		}
+		if out := string(got); out != tC.out {
+			t.Errorf("#%d: Marsha() output:\ngot  %v\nwant %v", tI, out, tC.out)
+		}
+	}
 }
