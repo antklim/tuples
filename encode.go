@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	tuplesDelimiter = ' '
+	// tuplesDelimiter = ' '
 	fieldsDelimiter = ','
 	keyValDelimiter = '='
 )
