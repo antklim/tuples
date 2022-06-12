@@ -11,19 +11,18 @@ import (
 
 var invalidUnmarshalTests = []struct {
 	v   any
-	err string
+	err error
 }{
-	{nil, "tuples: Unmarshal(nil)"},
-	{struct{}{}, "tuples: Unmarshal(non-pointer struct {})"},
-	{(*int)(nil), "tuples: Unmarshal(nil *int)"},
+	{nil, errors.New("tuples: Unmarshal(nil)")},
+	{struct{}{}, errors.New("tuples: Unmarshal(non-pointer struct {})")},
+	{(*int)(nil), errors.New("tuples: Unmarshal(nil *int)")},
 }
 
 func TestInvalidUnmarshal(t *testing.T) {
 	in := []byte("fname=John")
 	for tI, tC := range invalidUnmarshalTests {
 		err := tuples.Unmarshal(in, tC.v)
-		// TODO: use errorEqual
-		if err == nil || (err.Error() != tC.err) {
+		if !eqErrors(err, tC.err) {
 			t.Errorf("#%d: Unmarshal() error mismatch:\ngot  %v\nwant %s", tI, err, tC.err)
 		}
 	}
@@ -205,18 +204,6 @@ var unmarshalTests = []unmarshalTest{
 		ptr: new(any),
 		err: errors.New("tuples: scan failed: tuple #1 invalid field #4"),
 	},
-}
-
-func eqErrors(a, b error) bool {
-	if a == nil {
-		return b == nil
-	}
-
-	if b == nil {
-		return a == nil
-	}
-
-	return a.Error() == b.Error()
 }
 
 func TestUnmarshal(t *testing.T) {
