@@ -78,6 +78,18 @@ var marshalTests = []marshalTest{
 		out: "fld1=1,fld2=9 fld4=hehe,fld5=44",
 	},
 
+	// ignore channels
+	{
+		in:  make(chan int),
+		out: "",
+	},
+
+	// ignore functions
+	{
+		in:  func() {},
+		out: "",
+	},
+
 	// empty map key error
 	{
 		in:  map[string]any{"": "Smith"},
