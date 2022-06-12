@@ -22,6 +22,7 @@ func TestInvalidUnmarshal(t *testing.T) {
 	in := []byte("fname=John")
 	for tI, tC := range invalidUnmarshalTests {
 		err := tuples.Unmarshal(in, tC.v)
+		// TODO: use errorEqual
 		if err == nil || (err.Error() != tC.err) {
 			t.Errorf("#%d: Unmarshal() error mismatch:\ngot  %v\nwant %s", tI, err, tC.err)
 		}
@@ -72,7 +73,11 @@ type unmarshalTest struct {
 }
 
 var unmarshalTests = []unmarshalTest{
-	{in: "", ptr: new([]T), out: []T{}},
+	{
+		in:  "",
+		ptr: new([]T),
+		out: []T{},
+	},
 	{
 		in:  "name=John,lname=Doe,age=17",
 		ptr: new([]T),
@@ -206,9 +211,11 @@ func eqErrors(a, b error) bool {
 	if a == nil {
 		return b == nil
 	}
+
 	if b == nil {
 		return a == nil
 	}
+
 	return a.Error() == b.Error()
 }
 
@@ -216,12 +223,14 @@ func TestUnmarshal(t *testing.T) {
 	for i, tC := range unmarshalTests {
 		in := []byte(tC.in)
 		typ := reflect.TypeOf(tC.ptr)
+
 		if typ.Kind() != reflect.Pointer {
 			t.Errorf("#%d: unmarshalTest.ptr %T is not a pointer type", i, tC.ptr)
 			continue
 		}
-		typ = typ.Elem()
-		got := reflect.New(typ)
+
+		got := reflect.New(typ.Elem())
+
 		if err := tuples.Unmarshal(in, got.Interface()); !eqErrors(err, tC.err) {
 			t.Errorf("#%d: unexpected Unmarshal() error: \ngot  %v\nwant %v", i, err, tC.err)
 			continue
@@ -243,13 +252,16 @@ func TestUnmarshalToPrefilledSlice(t *testing.T) {
 	cp, ln := 5, 1
 	got := make([]T, cp)
 	in := "name=John,lname=Doe,age=17"
+
 	err := tuples.Unmarshal([]byte(in), &got)
 	if err != nil {
 		t.Fatalf("unexpected Unmarshal() error: \ngot %v", err)
 	}
+
 	if len(got) != ln {
 		t.Errorf("Unmarshal() output len: \ngot  %d\nwant %d", len(got), ln)
 	}
+
 	if cap(got) != cp {
 		t.Errorf("Unmarshal() output cap: \ngot  %d\nwant %d", len(got), cp)
 	}
