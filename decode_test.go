@@ -152,6 +152,27 @@ var unmarshalTests = []unmarshalTest{
 		},
 	},
 
+	// TODO: implement unmarshal to map
+	// // unmarshal to map of strings
+	// {
+	// 	in:  "name=John,lname=Doe,age=17 n=1,n8=-2,n16=3,n32=-4,n64=5",
+	// 	ptr: new([]map[string]string),
+	// 	out: []map[string]string{
+	// 		{"name": "John", "lname": "Doe", "age": "17"},
+	// 		{"n": "1", "n8": "-2", "n16": "3", "n32": "-4", "n64": "5"},
+	// 	},
+	// },
+
+	// // unmarshal to map of any
+	// {
+	// 	in:  "name=John,lname=Doe,age=17 n=1,n8=-2,n16=3,n32=-4,n64=5",
+	// 	ptr: new([]map[string]any),
+	// 	out: []map[string]any{
+	// 		{"name": "John", "lname": "Doe", "age": "17"},
+	// 		{"n": "1", "n8": "-2", "n16": "3", "n32": "-4", "n64": "5"},
+	// 	},
+	// },
+
 	// invalid field value errors
 	{
 		in:         "adult=a",
