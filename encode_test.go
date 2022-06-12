@@ -1,6 +1,7 @@
 package tuples_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -62,11 +63,26 @@ var marshalTests = []marshalTest{
 	// 	},
 	// 	out: "fld1=1,fld2=9 fld4=hehe,fld5=44",
 	// },
+
+	// empty map key error
+	{
+		in:  map[string]any{"": "Smith"},
+		err: errors.New("tuples: marshal failed: map key cannot be empty"),
+	},
 }
 
 func TestMarshal(t *testing.T) {
 	for tI, tC := range marshalTests {
 		got, err := tuples.Marshal(tC.in)
+		if err != nil {
+			var e *tuples.MarshalError
+			if !errors.As(err, &e) {
+				t.Errorf("#%d: Marshal() error is not a MarshalError", tI)
+			}
+			if errors.Unwrap(err) == nil {
+				t.Errorf("#%d: Marshal() error should wrap original error", tI)
+			}
+		}
 		if !eqErrors(tC.err, err) {
 			t.Errorf("#%d: unexpected Marshal() error: \ngot  %v\nwant %v", tI, err, tC.err)
 			continue
