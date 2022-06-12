@@ -62,12 +62,15 @@ func (so *scannerOptions) validate() error {
 	if so.fd == so.kvd {
 		return errEqualDelimiters
 	}
+
 	if !validDelim(so.fd) {
 		return errInvalidFieldsDelimiter
 	}
+
 	if !validDelim(so.kvd) {
 		return errInvalidKeyValueDelimiter
 	}
+
 	return nil
 }
 
@@ -97,6 +100,7 @@ func newScanner(r io.Reader, opts ...scannerOption) (*scanner, error) {
 
 	bufscan := bufio.NewScanner(r)
 	bufscan.Split(bufio.ScanWords)
+
 	s := &scanner{
 		s:    bufscan,
 		opts: sopts,
@@ -126,41 +130,52 @@ func (s *scanner) next() bool {
 	if s.err != nil {
 		s.state = scanDone
 	}
+
 	if s.state == scanDone {
 		return false
 	}
+
 	if s.state == scanReady {
 		s.state = scanTuple
 	}
+
 	if !s.s.Scan() {
 		s.state = scanDone
 		if err := s.s.Err(); err != nil {
 			s.err = &ScannerError{err}
 		}
 	}
+
 	s.pos++
+
 	return s.state != scanDone
 }
 
 func (s *scanner) nextTimes(n int) bool {
 	for ; n >= 1 && s.next(); n-- {
 	}
+
 	return s.state != scanDone
 }
 
 func (s *scanner) tuple() ([][]string, error) {
+	var tuple [][]string
+
 	// It splits "name=John,lname=Doe,age=17" to ["name=John", "lname=Doe", "age=17"].
 	fields := strings.FieldsFunc(s.s.Text(), splitFunc(s.opts.fd))
-	var tuple [][]string
+
 	for i, f := range fields {
 		// It splits "name=John" into ["name", "John"].
 		kv := strings.FieldsFunc(f, splitFunc(s.opts.kvd))
+
 		if len(kv) != 2 { // nolint: gomnd
 			s.err = &ScannerError{fmt.Errorf("tuple #%d invalid field #%d", s.pos, i+1)}
 			return nil, s.err
 		}
+
 		tuple = append(tuple, []string{kv[idxKey], kv[idxVal]})
 	}
+
 	return tuple, nil
 }
 
