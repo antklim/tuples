@@ -93,14 +93,17 @@ func TestMarshal(t *testing.T) {
 			if !errors.As(err, &e) {
 				t.Errorf("#%d: Marshal() error is not a MarshalError", tI)
 			}
+
 			if errors.Unwrap(err) == nil {
 				t.Errorf("#%d: Marshal() error should wrap original error", tI)
 			}
 		}
+
 		if !eqErrors(tC.err, err) {
 			t.Errorf("#%d: unexpected Marshal() error: \ngot  %v\nwant %v", tI, err, tC.err)
 			continue
 		}
+
 		if out := string(got); out != tC.out {
 			t.Errorf("#%d: Marshal() output:\ngot  %v (len %d)\nwant %v (len %d)",
 				tI, out, len(out), tC.out, len(tC.out))
