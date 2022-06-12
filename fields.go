@@ -24,11 +24,13 @@ func typeFields(t reflect.Type) typFields {
 
 	for i := 0; i < t.NumField(); i++ {
 		fld := t.Field(i)
+
 		if tag := fld.Tag.Get("tuples"); tag != "" {
 			f := field{
 				name: fld.Name,
 				tag:  tag,
 			}
+
 			fields = append(fields, f)
 		}
 	}
@@ -37,6 +39,7 @@ func typeFields(t reflect.Type) typFields {
 	for i, f := range fields {
 		fieldsByTag[f.tag] = i
 	}
+
 	return typFields{fields, fieldsByTag}
 }
 
@@ -47,5 +50,6 @@ func cachedTypeFields(t reflect.Type) typFields {
 	}
 
 	cache, _ := fieldsCache.LoadOrStore(t, typeFields(t))
+
 	return cache.(typFields)
 }
