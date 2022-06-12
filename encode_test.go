@@ -60,7 +60,15 @@ var marshalTests = []marshalTest{
 			"fname": "Smith",
 			"age":   23,
 		},
-		out: "fname=Smith,age=23",
+		out: "age=23,fname=Smith",
+	},
+	{
+		in: map[int]any{
+			3: "Smith",
+			2: 23,
+			1: true,
+		},
+		out: "1=true,2=23,3=Smith",
 	},
 	// {
 	// 	in: []any{

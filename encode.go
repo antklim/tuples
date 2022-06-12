@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sort"
 )
 
 const (
@@ -83,13 +84,24 @@ func (e *encoder) structObj(v reflect.Value) error {
 }
 
 func (e *encoder) mapObj(v reflect.Value) error {
-	for i, mapKey := range v.MapKeys() {
+	var keyVals []keyVal
+
+	for _, mapKey := range v.MapKeys() {
 		key, val := fmt.Sprint(mapKey.Interface()), v.MapIndex(mapKey)
 		if key == "" {
 			return &MarshalError{errors.New("map key cannot be empty")}
 		}
 
-		if err := e.writeKeyVal(key, val, i); err != nil {
+		keyVals = append(keyVals, keyVal{key, val})
+	}
+
+	// sorting map keys alphabetically to guarantee deterministic encoding result
+	sort.SliceStable(keyVals, func(i, j int) bool {
+		return keyVals[i].key < keyVals[j].key
+	})
+
+	for i, kv := range keyVals {
+		if err := e.writeKeyVal(kv.key, kv.val, i); err != nil {
 			return err
 		}
 	}
@@ -137,6 +149,11 @@ func (e *encoder) writeKey(key string, keyIdx int) error {
 	}
 
 	return nil
+}
+
+type keyVal struct {
+	key string
+	val reflect.Value
 }
 
 func unwrapElement(v reflect.Value) reflect.Value {
