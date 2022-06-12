@@ -202,6 +202,7 @@ func TestScannerOptions(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			s, err := newScanner(nil, tC.opts...)
 			if tC.err != nil {
+				// TODO: use eqErrors
 				if err == nil || (err.Error() != tC.err.Error()) {
 					t.Errorf("#%d: newScanner() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
 				}
