@@ -1,7 +1,0 @@
-- Update readme
-
-=== Features
-- Add Unmarshaler interface
-- Add Marshaler interface
-- Expose decoder
-- Add decoder options
