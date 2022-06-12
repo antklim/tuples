@@ -24,6 +24,7 @@ func NewReader(r io.Reader, opts ...ReaderOption) (*Reader, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Reader{s}, nil
 }
 
@@ -42,9 +43,11 @@ func (r *Reader) ReadAll() (tuples [][]string, err error) {
 		if err == io.EOF {
 			return tuples, nil
 		}
+
 		if err != nil {
 			return nil, err
 		}
+
 		tuples = append(tuples, tuple)
 	}
 }
@@ -55,10 +58,12 @@ func (r *Reader) readTuple() ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		var fieldValues []string
 		for _, field := range tuple {
 			fieldValues = append(fieldValues, field[idxVal])
 		}
+
 		return fieldValues, nil
 	}
 
@@ -66,6 +71,7 @@ func (r *Reader) readTuple() ([]string, error) {
 	if err == nil {
 		err = io.EOF
 	}
+
 	return nil, err
 }
 
@@ -87,6 +93,7 @@ func ReadString(s string, opts ...ReaderOption) ([][]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return r.ReadAll()
 }
 
