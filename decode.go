@@ -15,9 +15,11 @@ import (
 // If v is nil or not a pointer, Unmarshal returns an InvalidUnmarshalError.
 func Unmarshal(data []byte, v any) error {
 	var d decodeState
+
 	if err := d.init(data); err != nil {
 		return err
 	}
+
 	return d.unmarshal(v)
 }
 
@@ -31,9 +33,11 @@ func (e *InvalidUnmarshalError) Error() string {
 	if e.Type == nil {
 		return "tuples: Unmarshal(nil)"
 	}
+
 	if e.Type.Kind() != reflect.Pointer {
 		return fmt.Sprintf("tuples: Unmarshal(non-pointer %s)", e.Type.String())
 	}
+
 	return fmt.Sprintf("tuples: Unmarshal(nil %s)", e.Type.String())
 }
 
@@ -72,9 +76,11 @@ type decodeState struct {
 
 func (d *decodeState) init(data []byte) error {
 	d.data = data
+
 	if err := d.initScanner(bytes.NewReader(data)); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -83,7 +89,9 @@ func (d *decodeState) initScanner(r io.Reader) error {
 	if err != nil {
 		return err
 	}
+
 	d.s = s
+
 	return nil
 }
 
@@ -92,11 +100,13 @@ func (d *decodeState) unmarshal(v any) error {
 	if rv.Kind() != reflect.Pointer || rv.IsNil() {
 		return &InvalidUnmarshalError{reflect.TypeOf(v)}
 	}
+
 	return d.value(rv)
 }
 
 func (d *decodeState) value(v reflect.Value) error {
 	v = indirect(v)
+
 	switch d.s.state {
 	case scanReady:
 		// The beginning of scanning, v should be a slice, array or interface.
@@ -113,6 +123,7 @@ func (d *decodeState) value(v reflect.Value) error {
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -138,10 +149,12 @@ func (d *decodeState) array(v reflect.Value) error {
 				if newcap < 4 {               // nolint: gomnd
 					newcap = 4
 				}
+
 				newv := reflect.MakeSlice(v.Type(), v.Len(), newcap)
 				reflect.Copy(newv, v)
 				v.Set(newv)
 			}
+
 			if i >= v.Len() {
 				v.SetLen(i + 1)
 			}
@@ -155,6 +168,7 @@ func (d *decodeState) array(v reflect.Value) error {
 		} else {
 			// Run out of fixed array, skip.
 		}
+
 		i++
 	}
 
@@ -162,6 +176,7 @@ func (d *decodeState) array(v reflect.Value) error {
 		if v.Kind() == reflect.Array {
 			// Add zeros to the rest of the array.
 			z := reflect.Zero(v.Type().Elem())
+
 			for ; i < v.Len(); i++ {
 				v.Index(i).Set(z)
 			}
@@ -174,6 +189,7 @@ func (d *decodeState) array(v reflect.Value) error {
 	if i == 0 && v.Kind() == reflect.Slice {
 		v.Set(reflect.MakeSlice(v.Type(), 0, 0))
 	}
+
 	return nil
 }
 
@@ -182,21 +198,25 @@ func (d *decodeState) object(v reflect.Value) error {
 	if err != nil {
 		return err
 	}
+
 	for _, fld := range flds {
 		tag, val := fld[idxKey], fld[idxVal]
 		sf := cachedTypeFields(v.Type())
+
 		if idx, ok := sf.fieldsByTag[tag]; ok {
 			if err := set(v.Field(idx), val); err != nil {
 				return err
 			}
 		}
 	}
+
 	return nil
 }
 
 func (d *decodeState) arrayInterface(v reflect.Value) error {
 	var a = make([]map[string]any, 0)
 	var er error
+
 	for d.s.next() {
 		if oi, err := d.objectInterface(); err != nil {
 			er = err
@@ -205,19 +225,24 @@ func (d *decodeState) arrayInterface(v reflect.Value) error {
 			a = append(a, oi)
 		}
 	}
+
 	v.Set(reflect.ValueOf(a))
+
 	return er
 }
 
 func (d *decodeState) objectInterface() (map[string]any, error) {
 	m := make(map[string]any)
+
 	flds, err := d.s.tuple()
 	if err != nil {
 		return nil, err
 	}
+
 	for _, fld := range flds {
 		m[fld[idxKey]] = fld[idxVal]
 	}
+
 	return m, nil
 }
 
@@ -234,8 +259,10 @@ func indirect(v reflect.Value) reflect.Value {
 		if v.Kind() != reflect.Pointer {
 			break
 		}
+
 		v = v.Elem()
 	}
+
 	return v
 }
 
@@ -248,33 +275,39 @@ func set(v reflect.Value, value string) error {
 		if err != nil {
 			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
+
 		v.SetInt(n)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		n, err := strconv.ParseUint(value, 10, 64) // nolint:gomnd
 		if err != nil {
 			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
+
 		v.SetUint(n)
 	case reflect.Float32:
 		f, err := strconv.ParseFloat(value, 32) // nolint:gomnd
 		if err != nil {
 			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
+
 		v.SetFloat(f)
 	case reflect.Float64:
 		f, err := strconv.ParseFloat(value, 64) // nolint:gomnd
 		if err != nil {
 			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
+
 		v.SetFloat(f)
 	case reflect.Bool:
 		b, err := strconv.ParseBool(value)
 		if err != nil {
 			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
+
 		v.SetBool(b)
 	default:
 		return &UnmarshalUnsupportedTypeError{v.Type()}
 	}
+
 	return nil
 }
