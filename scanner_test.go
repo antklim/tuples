@@ -74,7 +74,8 @@ func TestNext(t *testing.T) {
 
 			if tC.err != nil {
 				if err == nil || (err.Error() != tC.err.Error()) {
-					t.Errorf("#%d: scan next() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
+					t.Errorf("#%d: scan next() error mismatch:\ngot  %v\nwant %v",
+						tI, err, tC.err)
 				}
 
 				var e *ScannerError
@@ -91,11 +92,13 @@ func TestNext(t *testing.T) {
 				}
 
 				if len(out) != len(tC.out) {
-					t.Errorf("#%d: scan next() output length mismatch:\ngot  %d\nwant %d", tI, len(out), len(tC.out))
+					t.Errorf("#%d: scan next() output length mismatch:\ngot  %d\nwant %d",
+						tI, len(out), len(tC.out))
 				} else {
 					for i, tout := range tC.out {
 						if !reflect.DeepEqual(out[i], tout) {
-							t.Errorf("#%d: scan next() output #%d:\ngot  %v\nwant %v", tI, i, out[i], tout)
+							t.Errorf("#%d: scan next() output #%d:\ngot  %v\nwant %v",
+								tI, i, out[i], tout)
 						}
 					}
 				}
@@ -165,17 +168,20 @@ func TestNextTimes(t *testing.T) {
 			}
 
 			if len(out) != len(tC.out) {
-				t.Errorf("#%d: scan nextTimes() output length mismatch:\ngot  %d\nwant %d", tI, len(out), len(tC.out))
+				t.Errorf("#%d: scan nextTimes() output length mismatch:\ngot  %d\nwant %d",
+					tI, len(out), len(tC.out))
 			} else {
 				for i, tout := range tC.out {
 					if !reflect.DeepEqual(out[i], tout) {
-						t.Errorf("#%d: scan nextTimes() output #%d:\ngot  %v\nwant %v", tI, i, out[i], tout)
+						t.Errorf("#%d: scan nextTimes() output #%d:\ngot  %v\nwant %v",
+							tI, i, out[i], tout)
 					}
 				}
 			}
 
 			if hasNext != !tC.done {
-				t.Errorf("#%d: scan nextTimes() hasNext mismatch:\ngot  %t\nwant %t", tI, hasNext, !tC.done)
+				t.Errorf("#%d: scan nextTimes() hasNext mismatch:\ngot  %t\nwant %t",
+					tI, hasNext, !tC.done)
 			}
 		})
 	}
@@ -230,7 +236,6 @@ func TestScannerOptions(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			s, err := newScanner(nil, tC.opts...)
 			if tC.err != nil {
-				// TODO: use eqErrors
 				if err == nil || (err.Error() != tC.err.Error()) {
 					t.Errorf("#%d: newScanner() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
 				}
@@ -253,7 +258,8 @@ func TestScannerOptions(t *testing.T) {
 				}
 
 				if !reflect.DeepEqual(s.opts, tC.sopts) {
-					t.Errorf("#%d: newScanner() invalid scanner options:\ngot %v\nwant %v", tI, s.opts, tC.sopts)
+					t.Errorf("#%d: newScanner() invalid scanner options:\ngot %v\nwant %v",
+						tI, s.opts, tC.sopts)
 				}
 			}
 		})
