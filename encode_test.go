@@ -78,6 +78,12 @@ var marshalTests = []marshalTest{
 		out: "fld1=1,fld2=9 fld4=hehe,fld5=44",
 	},
 
+	// output default values
+	{
+		in:  T1{Foo: "hey"},
+		out: "foo=hey,baaar=0",
+	},
+
 	// ignore channels
 	{
 		in:  make(chan int),

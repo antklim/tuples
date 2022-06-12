@@ -41,7 +41,32 @@ func ExampleUnmarshal() {
 	// [map[age:17 lname:Doe name:John] map[height:170 weight:50]]
 }
 
-func ExampleMarshal() {}
+func ExampleMarshal() {
+	type person struct {
+		Name string `tuples:"full_name"`
+		Age  int    `tuples:"years-old"`
+	}
+
+	p := person{Name: "Bob", Age: 33}
+
+	b, err := tuples.Marshal(p)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("%s\n", string(b))
+
+	pp := []person{{Name: "Bob", Age: 33}, {Name: "Paul", Age: 99}}
+
+	b, err = tuples.Marshal(pp)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("%s\n", string(b))
+
+	// Output:
+	// full_name=Bob,years-old=33
+	// full_name=Bob,years-old=33 full_name=Paul,years-old=99
+}
 
 func ExampleReadString() {
 	in := "fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10"
