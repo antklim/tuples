@@ -8,13 +8,11 @@ import (
 	"strconv"
 )
 
-// TODO: rename decodeState to decoder
-
 // Unmarshal parses the tuples-encoded data and stores the result in the value
 // pointed to by v.
 // If v is nil or not a pointer, Unmarshal returns an InvalidUnmarshalError.
 func Unmarshal(data []byte, v any) error {
-	var d decodeState
+	var d decoder
 
 	if err := d.init(data); err != nil {
 		return err
@@ -69,12 +67,12 @@ func (e *UnmarshalError) Unwrap() error {
 	return e.Err
 }
 
-type decodeState struct {
+type decoder struct {
 	data []byte
 	s    *scanner
 }
 
-func (d *decodeState) init(data []byte) error {
+func (d *decoder) init(data []byte) error {
 	d.data = data
 
 	if err := d.initScanner(bytes.NewReader(data)); err != nil {
@@ -84,7 +82,7 @@ func (d *decodeState) init(data []byte) error {
 	return nil
 }
 
-func (d *decodeState) initScanner(r io.Reader) error {
+func (d *decoder) initScanner(r io.Reader) error {
 	s, err := newScanner(r)
 	if err != nil {
 		return err
@@ -95,7 +93,7 @@ func (d *decodeState) initScanner(r io.Reader) error {
 	return nil
 }
 
-func (d *decodeState) unmarshal(v any) error {
+func (d *decoder) unmarshal(v any) error {
 	rv := reflect.ValueOf(v)
 	if rv.Kind() != reflect.Pointer || rv.IsNil() {
 		return &InvalidUnmarshalError{reflect.TypeOf(v)}
@@ -104,7 +102,7 @@ func (d *decodeState) unmarshal(v any) error {
 	return d.value(rv)
 }
 
-func (d *decodeState) value(v reflect.Value) error {
+func (d *decoder) value(v reflect.Value) error {
 	v = indirect(v)
 
 	switch d.s.state {
@@ -127,7 +125,7 @@ func (d *decodeState) value(v reflect.Value) error {
 	return nil
 }
 
-func (d *decodeState) array(v reflect.Value) error {
+func (d *decoder) array(v reflect.Value) error {
 	switch v.Kind() {
 	case reflect.Array, reflect.Slice:
 		break
@@ -193,7 +191,7 @@ func (d *decodeState) array(v reflect.Value) error {
 	return nil
 }
 
-func (d *decodeState) object(v reflect.Value) error {
+func (d *decoder) object(v reflect.Value) error {
 	flds, err := d.s.tuple()
 	if err != nil {
 		return err
@@ -213,7 +211,7 @@ func (d *decodeState) object(v reflect.Value) error {
 	return nil
 }
 
-func (d *decodeState) arrayInterface(v reflect.Value) error {
+func (d *decoder) arrayInterface(v reflect.Value) error {
 	var a = make([]map[string]any, 0)
 	var er error
 
@@ -231,7 +229,7 @@ func (d *decodeState) arrayInterface(v reflect.Value) error {
 	return er
 }
 
-func (d *decodeState) objectInterface() (map[string]any, error) {
+func (d *decoder) objectInterface() (map[string]any, error) {
 	m := make(map[string]any)
 
 	flds, err := d.s.tuple()
