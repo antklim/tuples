@@ -71,7 +71,19 @@ func (e *encoder) encode(v reflect.Value) error {
 }
 
 func (e *encoder) structObj(v reflect.Value) error {
-	return errors.New("not implemented")
+	sf := cachedTypeFields(v.Type())
+	for i, fld := range sf.fields {
+		if err := e.writeKey(fld.tag, i); err != nil {
+			return &MarshalError{err}
+		}
+
+		val := v.FieldByName(fld.name)
+		if err := e.encode(val); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (e *encoder) mapObj(v reflect.Value) error {

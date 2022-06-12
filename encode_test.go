@@ -33,8 +33,14 @@ type marshalTest struct {
 }
 
 var marshalTests = []marshalTest{
-	// {in: T1{Foo: "hey", Bar: 25}, out: "foo=hey,baaar=25"},
-	// {in: &T1{Foo: "hey", Bar: 25}, out: "foo=hey,baaar=25"},
+	{
+		in:  T1{Foo: "hey", Bar: 25},
+		out: "foo=hey,baaar=25",
+	},
+	{
+		in:  &T1{Foo: "hey", Bar: 25},
+		out: "foo=hey,baaar=25",
+	},
 	// {
 	// 	in: []T3{
 	// 		{Name: "Bob", Age: 33, Dob: time.Now(), HasKids: false},
