@@ -2,6 +2,7 @@ package tuples_test
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/antklim/tuples"
 )
@@ -17,7 +18,6 @@ func ExampleUnmarshal() {
 	var p []person
 	if err := tuples.Unmarshal([]byte(in), &p); err != nil {
 		fmt.Println(err)
-		return
 	}
 	fmt.Printf("%+v\n", p)
 
@@ -25,7 +25,6 @@ func ExampleUnmarshal() {
 	var pp []person
 	if err := tuples.Unmarshal([]byte(in), &pp); err != nil {
 		fmt.Println(err)
-		return
 	}
 	fmt.Printf("%+v\n", pp)
 
@@ -33,7 +32,6 @@ func ExampleUnmarshal() {
 	var ppp any
 	if err := tuples.Unmarshal([]byte(in), &ppp); err != nil {
 		fmt.Println(err)
-		return
 	}
 	fmt.Printf("%+v\n", ppp)
 
@@ -45,6 +43,33 @@ func ExampleUnmarshal() {
 
 func ExampleMarshal() {}
 
-func ExampleReadString() {}
+func ExampleReadString() {
+	in := "fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10"
 
-func ExampleReader_ReadAll() {}
+	v, err := tuples.ReadString(in)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("%v\n", v)
+
+	// Output:
+	// [[John Doe 2000-01-01] [Bob Smith 2010-10-10]]
+}
+
+func ExampleReader_ReadAll() {
+	in := "fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10"
+
+	r, err := tuples.NewReader(strings.NewReader(in))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	v, err := r.ReadAll()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("%v\n", v)
+
+	// Output:
+	// [[John Doe 2000-01-01] [Bob Smith 2010-10-10]]
+}
