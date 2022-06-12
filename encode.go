@@ -73,12 +73,8 @@ func (e *encoder) encode(v reflect.Value) error {
 func (e *encoder) structObj(v reflect.Value) error {
 	sf := cachedTypeFields(v.Type())
 	for i, fld := range sf.fields {
-		if err := e.writeKey(fld.tag, i); err != nil {
-			return &MarshalError{err}
-		}
-
-		val := v.FieldByName(fld.name)
-		if err := e.encode(val); err != nil {
+		key, val := fld.tag, v.FieldByName(fld.name)
+		if err := e.writeKeyVal(key, val, i); err != nil {
 			return err
 		}
 	}
@@ -87,18 +83,13 @@ func (e *encoder) structObj(v reflect.Value) error {
 }
 
 func (e *encoder) mapObj(v reflect.Value) error {
-	for i, key := range v.MapKeys() {
-		mapKey := fmt.Sprint(key.Interface())
-		if mapKey == "" {
+	for i, mapKey := range v.MapKeys() {
+		key, val := fmt.Sprint(mapKey.Interface()), v.MapIndex(mapKey)
+		if key == "" {
 			return &MarshalError{errors.New("map key cannot be empty")}
 		}
 
-		if err := e.writeKey(mapKey, i); err != nil {
-			return &MarshalError{err}
-		}
-
-		keyVal := v.MapIndex(key)
-		if err := e.encode(keyVal); err != nil {
+		if err := e.writeKeyVal(key, val, i); err != nil {
 			return err
 		}
 	}
@@ -115,6 +106,18 @@ func (e *encoder) value(v reflect.Value) error {
 	if _, err := e.b.WriteString(elem); err != nil {
 		return &MarshalError{err}
 	}
+	return nil
+}
+
+func (e *encoder) writeKeyVal(key string, val reflect.Value, keyIdx int) error {
+	if err := e.writeKey(key, keyIdx); err != nil {
+		return &MarshalError{err}
+	}
+
+	if err := e.encode(val); err != nil {
+		return err
+	}
+
 	return nil
 }
 
