@@ -50,8 +50,7 @@ func TestNewReader(t *testing.T) {
 			}
 
 			r, err := tuples.NewReader(strings.NewReader(""), opts...)
-			// TODO: use equalsErrors
-			if err == nil || (err.Error() != tC.err.Error()) {
+			if !eqErrors(err, tC.err) {
 				t.Fatalf("#%d: NewReader error mismatch:\ngot  %v,\nwant %v", tI, err, tC.err)
 			}
 
@@ -154,7 +153,7 @@ func TestRead(t *testing.T) {
 					wantErr = io.EOF
 				}
 
-				if err != nil && err.Error() != wantErr.Error() {
+				if err != nil && !eqErrors(err, wantErr) {
 					t.Fatalf("#%d: Read() error at record %d:\ngot  %v\nwant %v", tI, recNum, err, wantErr)
 				}
 
@@ -187,22 +186,12 @@ func TestReadAll(t *testing.T) {
 			}
 
 			out, err := r.ReadAll()
-			if tC.err != nil {
-				if err == nil || (err.Error() != tC.err.Error()) {
-					t.Fatalf("#%d: ReadAll() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
-				}
+			if !eqErrors(err, tC.err) {
+				t.Errorf("#%d: ReadAll() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
+			}
 
-				if out != nil {
-					t.Errorf("#%d: ReadAll() output:\ngot  %v\nwant nil", tI, out)
-				}
-			} else {
-				if err != nil {
-					t.Fatalf("#%d: unexpected ReadAll() error: %v", tI, err)
-				}
-
-				if !reflect.DeepEqual(out, tC.out) {
-					t.Errorf("#%d: ReadAll() output:\ngot  %v\nwant %v", tI, out, tC.out)
-				}
+			if !reflect.DeepEqual(out, tC.out) {
+				t.Errorf("#%d: ReadAll() output:\ngot  %v\nwant %v", tI, out, tC.out)
 			}
 		})
 	}
@@ -221,22 +210,12 @@ func TestReadString(t *testing.T) {
 		}
 
 		out, err := tuples.ReadString(tC.in, opts...)
-		if tC.err != nil {
-			if err == nil || (err.Error() != tC.err.Error()) {
-				t.Fatalf("#%d: ReadString() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
-			}
+		if !eqErrors(err, tC.err) {
+			t.Errorf("#%d: ReadString() error mismatch:\ngot  %v\nwant %v", tI, err, tC.err)
+		}
 
-			if out != nil {
-				t.Errorf("#%d: ReadString() output:\ngot  %v\nwant nil", tI, out)
-			}
-		} else {
-			if err != nil {
-				t.Fatalf("#%d: unexpected ReadString() error: %v", tI, err)
-			}
-
-			if !reflect.DeepEqual(out, tC.out) {
-				t.Errorf("#%d: ReadString() output:\ngot  %v\nwant %v", tI, out, tC.out)
-			}
+		if !reflect.DeepEqual(out, tC.out) {
+			t.Errorf("#%d: ReadString() output:\ngot  %v\nwant %v", tI, out, tC.out)
 		}
 	}
 }
@@ -255,9 +234,8 @@ func TestReadStringFails(t *testing.T) {
 			}
 
 			out, err := tuples.ReadString("", opts...)
-			// TODO: use equalsError
-			if err == nil || (err.Error() != tC.err.Error()) {
-				t.Fatalf("#%d: ReadString error mismatch:\ngot  %v,\nwant %v", tI, err, tC.err)
+			if !eqErrors(err, tC.err) {
+				t.Errorf("#%d: ReadString() error mismatch:\ngot  %v,\nwant %v", tI, err, tC.err)
 			}
 
 			var e *tuples.InvalidScannerOptionError
