@@ -14,18 +14,6 @@ const (
 	keyValDelimiter = '='
 )
 
-type MarshalError struct {
-	err error
-}
-
-func (e *MarshalError) Error() string {
-	return fmt.Sprintf("tuples: marshal failed: %s", e.err)
-}
-
-func (e *MarshalError) Unwrap() error {
-	return e.err
-}
-
 // Marshal returns tuples encoding of v.
 //
 // Marshal supports:
@@ -50,6 +38,20 @@ func Marshal(v any) ([]byte, error) {
 	}
 
 	return e.b.Bytes(), nil
+}
+
+// MarshalError describes an error that occurred while marshaling a Go value to
+// a tuple string.
+type MarshalError struct {
+	err error
+}
+
+func (e *MarshalError) Error() string {
+	return fmt.Sprintf("tuples: marshal failed: %s", e.err)
+}
+
+func (e *MarshalError) Unwrap() error {
+	return e.err
 }
 
 type encoder struct {
