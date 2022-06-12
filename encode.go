@@ -95,7 +95,7 @@ func (e *encoder) mapObj(v reflect.Value) error {
 		keyVals = append(keyVals, keyVal{key, val})
 	}
 
-	// sorting map keys alphabetically to guarantee deterministic encoding result
+	// Sorting map keys alphabetically to guarantee deterministic encoding result.
 	sort.SliceStable(keyVals, func(i, j int) bool {
 		return keyVals[i].key < keyVals[j].key
 	})
@@ -151,6 +151,8 @@ func (e *encoder) writeKey(key string, keyIdx int) error {
 	return nil
 }
 
+// keyVal stores map's key-value for further processing. Currently it's
+// used for sorting map by key to guarantee encoding output.
 type keyVal struct {
 	key string
 	val reflect.Value
