@@ -152,6 +152,17 @@ var unmarshalTests = []unmarshalTest{
 		},
 	},
 
+	// // TODO: implement unmarshal a slice of interfaces
+	// // unmarshal to a slice of interfaces
+	// {
+	// 	in:  "name=John,lname=Doe,age=17 n=1,n8=-2,n16=3,n32=-4,n64=5",
+	// 	ptr: new([]any),
+	// 	out: []map[string]any{
+	// 		{"name": "John", "lname": "Doe", "age": "17"},
+	// 		{"n": "1", "n8": "-2", "n16": "3", "n32": "-4", "n64": "5"},
+	// 	},
+	// },
+
 	// TODO: implement unmarshal to map
 	// // unmarshal to map of strings
 	// {
