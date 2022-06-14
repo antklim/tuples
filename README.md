@@ -158,11 +158,11 @@ When marshaling a map the package uses the map key as the field names in the res
 package main
 
 import(
-  "fmt"
-  "strings"
-  "time"
+	"fmt"
+	"strings"
+	"time"
 
-  "github.com/antklim/tuples"
+	"github.com/antklim/tuples"
 )
 
 func main() {
