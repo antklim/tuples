@@ -2,6 +2,7 @@ package tuples_test
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/antklim/tuples"
@@ -79,6 +80,31 @@ func ExampleReadString() {
 
 	// Output:
 	// [[John Doe 2000-01-01] [Bob Smith 2010-10-10]]
+}
+
+func ExampleReader_Read() {
+	in := "fname=John,lname=Doe,dob=2000-01-01 fname=Bob,lname=Smith,dob=2010-10-10"
+
+	r, err := tuples.NewReader(strings.NewReader(in))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	for {
+		tuple, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Printf("%v\n", tuple)
+	}
+
+	// Output:
+	// [John Doe 2000-01-01]
+	// [Bob Smith 2010-10-10]
 }
 
 func ExampleReader_ReadAll() {
