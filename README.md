@@ -23,7 +23,7 @@ The tuples string format is the following:
 There are three delimiters in format:
 * key-value delimiter, the default value is `=`
 * filds delimiter, the default value is `,`
-* tuples (records) delimiter, the default value is ` `
+* tuples (records) delimiter, the default value is ` ` (a whitespace)
 
 A string can contain 0 to N tuples. Each tuple can consist of 1 to M fields.
 
