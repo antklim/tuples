@@ -78,7 +78,7 @@ func main() {
 }
 ```
 
-Additionally, the package provides a `Reader`. It reads a tuples string and produces a collection of tuple values. You can read all tuples at once:
+Additionally, the package provides a `Reader`. It reads a tuples string and produces a collection of tuple values. You can read all tuples at once, as in the following example.
 
 ```go
 package main
