@@ -2,7 +2,7 @@
 
 [![codecov](https://codecov.io/gh/antklim/tuples/branch/main/graph/badge.svg?token=8RHXR5OABD)](https://codecov.io/gh/antklim/tuples)
 
-Go package `tuples` reads and writes tuples string - a string containing named tuples separated by a delimiter.
+Go package `tuples` reads and writes tuples string - a string containing a list of records/tuples separated by a delimiter.
 
 It's not rare when a configuration parameter represents a record or a list of records. For example:
 ```
@@ -15,15 +15,15 @@ The `tuples` package allows to unmarshal such strings to a predefined Go structu
 `go get github.com/antklim/tuples`
 
 # Format
-The tuple string format is the following:
+The tuples string format is the following:
 ```
 <name=value>,... [<name=value>,...]
 ```
 
 There are three delimiters in format:
-* key-value delimiter, default is `=`
-* filds delimiter, default is `,`
-* tuples (records) delimiter, default is ` `
+* key-value delimiter, the default value is `=`
+* filds delimiter, the default value is `,`
+* tuples (records) delimiter, the default value is ` `
 
 A string can contain 0 to N tuples. Each tuple can consist of 1 to M fields.
 
@@ -31,7 +31,8 @@ A string can contain 0 to N tuples. Each tuple can consist of 1 to M fields.
 
 ## Unmarshal
 
-The package uses `tuples` tag followed by the field name to encode/decode a Go structure. When unmarshaling to a map the tuples string field names used as keys in the map. 
+The package uses `tuples` tag followed by the field name to decode to a Go structure. Structure fields without the `tuples` tag omitted during decoding.  
+When unmarshaling to a map the tuples string field names become keys in the map. 
 
 The package does not read the full tuples string for decoding. It scans the string tuple by tuple. It is not possible to know ahead how many tuples the string contains. Therefore, the package only accepts the following unmarshaling destinations:
 * a slice or array of a struct
@@ -73,6 +74,77 @@ func main() {
   // Output:
 	// [{Height:700 Width:350 Format:jpeg} {Height:900 Width:450 Format:png}]
 	// [map[a:1 b:2] map[c:3 d:4]]
+}
+```
+
+Additionally, the package provides a `Reader`. It reads a tuples string and produces a collection of tuple values. You can read all tuples at once:
+
+```go
+package main
+
+import(
+  "fmt"
+  "strings"
+  "time"
+
+  "github.com/antklim/tuples"
+)
+
+func main() {
+  formatsConf := "h=700,w=350,f=jpeg h=900,w=450,f=png"
+
+  r, err := tuples.NewReader(strings.NewReader(formatsConf))
+  if err != nil {
+    fmt.Println(err)
+  }
+
+	v, err := r.ReadAll()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("%v\n", v)
+
+	// Output:
+	// [[700 350 jpeg] [900 450 png]]
+}
+```
+
+Or read tuple by tuple.
+
+```go
+package main
+
+import(
+  "fmt"
+  "strings"
+  "time"
+
+  "github.com/antklim/tuples"
+)
+
+func main() {
+  formatsConf := "h=700,w=350,f=jpeg h=900,w=450,f=png"
+
+  r, err := tuples.NewReader(strings.NewReader(formatsConf))
+  if err != nil {
+    fmt.Println(err)
+  }
+
+	for {
+		tuple, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Printf("%v\n", tuple)
+	}
+
+	// Output:
+	// [700 350 jpeg]
+  // [900 450 png]
 }
 ```
 
