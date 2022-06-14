@@ -44,34 +44,34 @@ In case when an interface (`any`) provided as the decoding destination, a slice 
 package main
 
 import(
-  "fmt"
-  "time"
+	"fmt"
+	"time"
 
-  "github.com/antklim/tuples"
+	"github.com/antklim/tuples"
 )
 
 type format struct {
-  Height int    `tuples:"h"`
-  Width  int    `tuples:"w"`
-  Format string `tuples:"f"`
+	Height int    `tuples:"h"`
+	Width  int    `tuples:"w"`
+	Format string `tuples:"f"`
 }
 
 func main() {
-  formatsConf := "h=700,w=350,f=jpeg h=900,w=450,f=png"
+	formatsConf := "h=700,w=350,f=jpeg h=900,w=450,f=png"
 
-  var formats []format
-  if err := tuples.Unmarshal([]byte(formatsConf), &formats); err != nil {
+	var formats []format
+	if err := tuples.Unmarshal([]byte(formatsConf), &formats); err != nil {
 		fmt.Println(err)
 	}
 	fmt.Printf("%+v\n", formats)
 
-  var anys any
-  if err := tuples.Unmarshal([]byte("b=2,a=1 d=4,c=3"), &anys); err != nil {
+	var anys any
+	if err := tuples.Unmarshal([]byte("b=2,a=1 d=4,c=3"), &anys); err != nil {
 		fmt.Println(err)
 	}
 	fmt.Printf("%+v\n", anys)
 
-  // Output:
+	// Output:
 	// [{Height:700 Width:350 Format:jpeg} {Height:900 Width:450 Format:png}]
 	// [map[a:1 b:2] map[c:3 d:4]]
 }
@@ -83,20 +83,20 @@ Additionally, the package provides a `Reader`. It reads a tuples string and prod
 package main
 
 import(
-  "fmt"
-  "strings"
-  "time"
+	"fmt"
+	"strings"
+	"time"
 
-  "github.com/antklim/tuples"
+	"github.com/antklim/tuples"
 )
 
 func main() {
-  formatsConf := "h=700,w=350,f=jpeg h=900,w=450,f=png"
+	formatsConf := "h=700,w=350,f=jpeg h=900,w=450,f=png"
 
-  r, err := tuples.NewReader(strings.NewReader(formatsConf))
-  if err != nil {
-    fmt.Println(err)
-  }
+	r, err := tuples.NewReader(strings.NewReader(formatsConf))
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	v, err := r.ReadAll()
 	if err != nil {
@@ -115,20 +115,20 @@ Or read tuple by tuple.
 package main
 
 import(
-  "fmt"
-  "strings"
-  "time"
+	"fmt"
+	"strings"
+	"time"
 
-  "github.com/antklim/tuples"
+	"github.com/antklim/tuples"
 )
 
 func main() {
-  formatsConf := "h=700,w=350,f=jpeg h=900,w=450,f=png"
+	formatsConf := "h=700,w=350,f=jpeg h=900,w=450,f=png"
 
-  r, err := tuples.NewReader(strings.NewReader(formatsConf))
-  if err != nil {
-    fmt.Println(err)
-  }
+	r, err := tuples.NewReader(strings.NewReader(formatsConf))
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	for {
 		tuple, err := r.Read()
@@ -144,7 +144,7 @@ func main() {
 
 	// Output:
 	// [700 350 jpeg]
-  // [900 450 png]
+ 	// [900 450 png]
 }
 ```
 
