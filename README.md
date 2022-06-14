@@ -31,7 +31,8 @@ A string can contain 0 to N tuples. Each tuple can consist of 1 to M fields.
 
 ## Unmarshal
 
-The package uses `tuples` tag followed by the field name to decode to a Go structure. Structure fields without the `tuples` tag omitted during decoding.  
+The package uses `tuples` tag followed by the field name to decode to a Go structure. Structure fields without the `tuples` tag omitted during decoding. The following field types are supported: `int*`, `uint*`, `float*`, `string`, and `bool`. Decoding to unsupported field type will cause an `UnmarshalUnsupportedTypeError`.
+
 When unmarshaling to a map the tuples string field names become keys in the map. 
 
 The package does not read the full tuples string for decoding. It scans the string tuple by tuple. It is not possible to know ahead how many tuples the string contains. Therefore, the package only accepts the following unmarshaling destinations:
@@ -149,3 +150,36 @@ func main() {
 ```
 
 ## Marshal
+The package uses only the fields with the tag `tuples` when marshaling Go structures. The tag value used as a field name in the resulting tuples string. 
+
+When marshaling a map the package uses the map key as the field names in the resulting tuples string.
+
+```go
+package main
+
+import(
+  "fmt"
+  "strings"
+  "time"
+
+  "github.com/antklim/tuples"
+)
+
+func main() {
+	type person struct {
+		Name string `tuples:"full_name"`
+		Age  int    `tuples:"years-old"`
+	}
+
+	p := person{Name: "Bob", Age: 33}
+
+	b, err := tuples.Marshal(p)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("%s\n", string(b))
+
+	// Output:
+	// full_name=Bob,years-old=33
+}
+```
