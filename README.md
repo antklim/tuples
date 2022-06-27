@@ -46,7 +46,6 @@ package main
 
 import(
 	"fmt"
-	"time"
 
 	"github.com/antklim/tuples"
 )
@@ -86,7 +85,6 @@ package main
 import(
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/antklim/tuples"
 )
@@ -118,7 +116,6 @@ package main
 import(
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/antklim/tuples"
 )
@@ -160,7 +157,6 @@ package main
 import(
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/antklim/tuples"
 )
