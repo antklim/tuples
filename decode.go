@@ -143,8 +143,8 @@ func (d *decoder) array(v reflect.Value) error {
 		if v.Kind() == reflect.Slice {
 			// Grow slice if necessary.
 			if i >= v.Cap() {
-				newcap := v.Cap() + v.Cap()/2 // nolint: gomnd
-				if newcap < 4 {               // nolint: gomnd
+				newcap := v.Cap() + v.Cap()/2 //nolint: gomnd
+				if newcap < 4 {               //nolint: gomnd
 					newcap = 4
 				}
 
@@ -246,6 +246,7 @@ func (d *decoder) objectInterface() (map[string]any, error) {
 
 // indirect walks down v until it gets to a non-pointer.
 // inspired by
+//
 //	https://github.com/aws/aws-sdk-go/blob/7a3b8d6ddc7199249e6280d6c1839e08213cc48c/service/dynamodb/dynamodbattribute/decode.go#L634
 //	https://cs.opensource.google/go/go/+/refs/tags/go1.18.1:src/encoding/json/decode.go;l=420;drc=refs%2Ftags%2Fgo1.18.1
 func indirect(v reflect.Value) reflect.Value {
@@ -269,28 +270,28 @@ func set(v reflect.Value, value string) error {
 	case reflect.String:
 		v.SetString(value)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		n, err := strconv.ParseInt(value, 10, 64) // nolint:gomnd
+		n, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
 
 		v.SetInt(n)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		n, err := strconv.ParseUint(value, 10, 64) // nolint:gomnd
+		n, err := strconv.ParseUint(value, 10, 64)
 		if err != nil {
 			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
 
 		v.SetUint(n)
 	case reflect.Float32:
-		f, err := strconv.ParseFloat(value, 32) // nolint:gomnd
+		f, err := strconv.ParseFloat(value, 32)
 		if err != nil {
 			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}
 
 		v.SetFloat(f)
 	case reflect.Float64:
-		f, err := strconv.ParseFloat(value, 64) // nolint:gomnd
+		f, err := strconv.ParseFloat(value, 64)
 		if err != nil {
 			return &UnmarshalError{Err: err, Value: value, Type: v.Type()}
 		}

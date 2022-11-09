@@ -80,6 +80,7 @@ func (r *Reader) readTuple() ([]string, error) {
 // failed.
 //
 // Usage:
+//
 //	tuples, err := ReadString("fname=John,lname=Doe dob=2000-01-01 age=17")
 //	if err != nil {
 //		return err
