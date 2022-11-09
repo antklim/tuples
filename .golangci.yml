@@ -25,7 +25,6 @@ linters-settings:
 linters:
   disable-all: true  
   enable:
-    - deadcode
     - dogsled
     - dupl
     - errcheck
@@ -50,7 +49,7 @@ linters:
     - revive
     - typecheck
     - unconvert
-    - varcheck
+    - unused
     - whitespace
 
 issues:
