@@ -117,6 +117,7 @@ func newScanner(r io.Reader, opts ...scannerOption) (*scanner, error) {
 // proactively.
 //
 // Usage:
+//
 //	in := strings.NewReader("name=Rob,lname=Doe name=Bob,lname=Smith")
 //	s := newScanner(in)
 //	for s.next() {
@@ -168,7 +169,7 @@ func (s *scanner) tuple() ([][]string, error) {
 		// It splits "name=John" into ["name", "John"].
 		kv := strings.FieldsFunc(f, splitFunc(s.opts.kvd))
 
-		if len(kv) != 2 { // nolint: gomnd
+		if len(kv) != 2 { //nolint: gomnd
 			s.err = &ScannerError{fmt.Errorf("tuple #%d invalid field #%d", s.pos, i+1)}
 			return nil, s.err
 		}

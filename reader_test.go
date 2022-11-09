@@ -99,8 +99,8 @@ var readTests = []readTest{
 	},
 	{
 		desc: "TabDelimited",
-		in: "fname=John,lname=Doe,dob=2000-01-01	fname=Bob,lname=Smith,dob=2010-10-10\n",
-		out: [][]string{{"John", "Doe", "2000-01-01"}, {"Bob", "Smith", "2010-10-10"}},
+		in:   "fname=John,lname=Doe,dob=2000-01-01	fname=Bob,lname=Smith,dob=2010-10-10\n",
+		out:  [][]string{{"John", "Doe", "2000-01-01"}, {"Bob", "Smith", "2010-10-10"}},
 	},
 	{
 		desc:    "CustomDelimiters",
