@@ -4,8 +4,12 @@ updates:
     directory: /
     schedule:
       interval: daily
+    commit-message:
+      prefix: chore
 
   - package-ecosystem: gomod
     directory: /
     schedule:
       interval: daily
+    commit-message:
+      prefix: chore
