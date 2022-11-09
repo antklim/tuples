@@ -1,0 +1,8 @@
+{
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "go.formatTool": "goimports",
+  "go.formatFlags": [
+    "-s"
+  ]
+}
