@@ -75,11 +75,9 @@ type decoder struct {
 func (d *decoder) init(data []byte) error {
 	d.data = data
 
-	if err := d.initScanner(bytes.NewReader(data)); err != nil {
-		return err
-	}
+	err := d.initScanner(bytes.NewReader(data))
 
-	return nil
+	return err
 }
 
 func (d *decoder) initScanner(r io.Reader) error {
@@ -163,8 +161,6 @@ func (d *decoder) array(v reflect.Value) error {
 			if err := d.value(v.Index(i)); err != nil {
 				return err
 			}
-		} else {
-			// Run out of fixed array, skip.
 		}
 
 		i++
