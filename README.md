@@ -1,7 +1,5 @@
 # tuples
 
-[![codecov](https://codecov.io/gh/antklim/tuples/branch/main/graph/badge.svg?token=8RHXR5OABD)](https://codecov.io/gh/antklim/tuples)
-
 Go package `tuples` reads and writes tuples string - a string containing a list of records/tuples separated by a delimiter.
 
 It's not rare when a configuration parameter represents a record or a list of records. For example:
