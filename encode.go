@@ -145,11 +145,9 @@ func (e *encoder) writeKeyVal(key string, val reflect.Value, keyIdx int) error {
 		return &MarshalError{err}
 	}
 
-	if err := e.encode(val); err != nil {
-		return err
-	}
+	err := e.encode(val)
 
-	return nil
+	return err
 }
 
 func (e *encoder) writeKey(key string, keyIdx int) error {

@@ -153,7 +153,7 @@ func (s *scanner) next() bool {
 }
 
 func (s *scanner) nextTimes(n int) bool {
-	for ; n >= 1 && s.next(); n-- {
+	for ; n >= 1 && s.next(); n-- { //nolint:revive
 	}
 
 	return s.state != scanDone

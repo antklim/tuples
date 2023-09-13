@@ -25,7 +25,6 @@ jobs:
       with:
         version: latest
         args: --verbose
-        skip-go-installation: true
 
   unit:
     name: Unit Test
